@@ -113,12 +113,14 @@ func (hr *HttpRequest) Header(key string, value string) *HttpRequest {
 
 func (hr *HttpRequest) Body(body string) *HttpRequest {
 	hr.body = body
+	hr.Header("Content-type", "text/plain")
 
 	return hr
 }
 
 func (hr *HttpRequest) Json(body any) *HttpRequest {
 	hr.body = hr.encodeToJson(body)
+	hr.Header("Content-type", "application/json")
 
 	return hr
 }
