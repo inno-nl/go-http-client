@@ -17,7 +17,7 @@ type HttpRequest struct {
 	parameters map[string]string
 	headers    map[string]string
 	body       string
-	timeout    int64 `default:"60"`
+	timeout    float64 `default:"60"`
 }
 
 func (hr *HttpRequest) parseUrl() string {
@@ -118,7 +118,7 @@ func (hr *HttpRequest) Json(body any) *HttpRequest {
 	return hr
 }
 
-func (hr *HttpRequest) Timeout(timeout int64) *HttpRequest {
+func (hr *HttpRequest) Timeout(timeout float64) *HttpRequest {
 	hr.timeout = timeout
 
 	return hr
