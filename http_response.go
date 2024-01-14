@@ -23,7 +23,7 @@ func newHttpResponse(resp *http.Response) *HttpResponse {
 
 	for hK, hV := range resp.Header {
 		if len(hV) == 0 {
-			hr.Headers[hK] = hV[0]
+			continue
 		}
 
 		hr.Headers[hK] = strings.Join(hV, ", ")
