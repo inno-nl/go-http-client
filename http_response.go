@@ -6,14 +6,6 @@ import (
 	"strings"
 )
 
-const (
-	GET    = "GET"
-	POST   = "POST"
-	PUT    = "PUT"
-	PATCH  = "PATCH"
-	DELETE = "DELETE"
-)
-
 type HttpResponse struct {
 	StatusCode int64
 	Headers    map[string]string

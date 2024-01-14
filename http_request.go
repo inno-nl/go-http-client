@@ -1,6 +1,7 @@
 package httpclient
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,8 +14,8 @@ import (
 type HttpRequest struct {
 	url        string
 	method     string
-	parameters []Parameter
-	headers    []Header
+	parameters map[string]string
+	headers    map[string]string
 	body       string
 	timeout    int64 `default:"60"`
 }
@@ -28,11 +29,11 @@ func (hr *HttpRequest) parseUrl() string {
 
 	parameters := make([]string, 0)
 
-	for _, p := range hr.parameters {
+	for k, v := range hr.parameters {
 		parameters = append(parameters, fmt.Sprintf(
 			"%s=%s",
-			url.QueryEscape(p.Key),
-			url.QueryEscape(p.Value),
+			url.QueryEscape(k),
+			url.QueryEscape(v),
 		))
 	}
 
@@ -65,11 +66,8 @@ func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
 		return
 	}
 
-	for _, h := range hr.headers {
-		req.Header.Set(
-			h.Key,
-			h.Value,
-		)
+	for k, v := range hr.headers {
+		req.Header.Set(k, v)
 	}
 
 	resp, err := hc.Do(req)
@@ -94,19 +92,13 @@ func (hr *HttpRequest) Method(method string) *HttpRequest {
 }
 
 func (hr *HttpRequest) Parameter(key string, value string) *HttpRequest {
-	hr.parameters = append(hr.parameters, Parameter{
-		Key:   key,
-		Value: value,
-	})
+	hr.parameters[key] = value
 
 	return hr
 }
 
 func (hr *HttpRequest) Header(key string, value string) *HttpRequest {
-	hr.headers = append(hr.headers, Header{
-		Key:   key,
-		Value: value,
-	})
+	hr.headers[key] = value
 
 	return hr
 }
@@ -119,7 +111,8 @@ func (hr *HttpRequest) Body(body string) *HttpRequest {
 }
 
 func (hr *HttpRequest) Json(body any) *HttpRequest {
-	hr.body = hr.encodeToJson(body)
+	bytes, _ := json.Marshal(body)
+	hr.body = string(bytes)
 	hr.Header("Content-type", "application/json")
 
 	return hr
@@ -131,8 +124,20 @@ func (hr *HttpRequest) Timeout(timeout int64) *HttpRequest {
 	return hr
 }
 
-func (hr *HttpRequest) encodeToJson(data any) string {
-	bytes, _ := json.Marshal(data)
+func (hr *HttpRequest) BasicAuth(user string, pass string) *HttpRequest {
+	hr.headers[AUTHORIZATION_HEADER] = fmt.Sprintf(
+		"Basic %s",
+		base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", user, pass))),
+	)
 
-	return string(bytes)
+	return hr
+}
+
+func (hr *HttpRequest) BearerAuth(token string) *HttpRequest {
+	hr.headers[AUTHORIZATION_HEADER] = fmt.Sprintf(
+		"Basic %s",
+		token,
+	)
+
+	return hr
 }
