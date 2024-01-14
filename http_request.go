@@ -54,7 +54,7 @@ func (hr *HttpRequest) parseBody() io.Reader {
 
 func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
 	hc := &http.Client{
-		Timeout: time.Duration(hr.timeout),
+		Timeout: time.Duration(hr.timeout) * time.Second,
 	}
 
 	req, err := http.NewRequest(
