@@ -12,7 +12,9 @@ import (
 )
 
 type HttpRequest struct {
+	baseUrl    string
 	url        string
+	uri        string
 	method     string
 	parameters map[string][]string
 	headers    map[string]string
@@ -20,7 +22,15 @@ type HttpRequest struct {
 	timeout    float64 `default:"60"`
 }
 
-func (hr *HttpRequest) parseUrl() string {
+func (hr *HttpRequest) generateUrl() string {
+	if hr.baseUrl != "" {
+		hr.url = fmt.Sprintf(
+			"%s/%s",
+			hr.baseUrl,
+			hr.uri,
+		)
+	}
+
 	parameters := make([]string, 0)
 
 	for key, values := range hr.parameters {
@@ -48,37 +58,9 @@ func (hr *HttpRequest) parseBody() io.Reader {
 	return nil
 }
 
-func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
-	hc := &http.Client{
-		Timeout: time.Duration(hr.timeout) * time.Second,
-	}
-
-	req, err := http.NewRequest(
-		hr.method,
-		hr.parseUrl(),
-		hr.parseBody(),
-	)
-	if err != nil {
-		return
-	}
-
-	for k, v := range hr.headers {
-		req.Header.Set(k, v)
-	}
-
-	resp, err := hc.Do(req)
-	if err != nil {
-		return
-	}
-
-	response = newHttpResponse(resp)
-	return
-}
-
-func (hr *HttpRequest) Url(requestUrl string) *HttpRequest {
+func (hr *HttpRequest) parseUrl(requestUrl string) string {
 	if !strings.Contains("?", requestUrl) {
-		hr.url = requestUrl
-		return hr
+		return requestUrl
 	}
 
 	parts := strings.Split(hr.url, "?")
@@ -101,6 +83,53 @@ func (hr *HttpRequest) Url(requestUrl string) *HttpRequest {
 
 		hr.Parameter(key, value)
 	}
+
+	return requestUrl
+}
+
+func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
+	hc := &http.Client{
+		Timeout: time.Duration(hr.timeout) * time.Second,
+	}
+
+	req, err := http.NewRequest(
+		hr.method,
+		hr.generateUrl(),
+		hr.parseBody(),
+	)
+	if err != nil {
+		return
+	}
+
+	for k, v := range hr.headers {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := hc.Do(req)
+	if err != nil {
+		return
+	}
+
+	response = newHttpResponse(resp)
+	return
+}
+
+func (hr *HttpRequest) BaseUrl(requestUrl string) *HttpRequest {
+	hr.url = strings.Trim(requestUrl, "/")
+
+	return hr
+}
+
+func (hr *HttpRequest) Url(requestUrl string) *HttpRequest {
+	hr.parseUrl(requestUrl)
+
+	return hr
+}
+
+func (hr *HttpRequest) Uri(requestUrl string) *HttpRequest {
+	hr.parseUrl(
+		strings.Trim(requestUrl, "/"),
+	)
 
 	return hr
 }
