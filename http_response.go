@@ -22,7 +22,7 @@ func (hr *HttpResponse) Json(sliceOrMapOrStruct *any) error {
 	return json.Unmarshal(hr.body, sliceOrMapOrStruct)
 }
 
-func (hr *HttpResponse) Xml(sliceOrMapOrStruct *any, saveAsString bool) error {
+func (hr *HttpResponse) Xml(sliceOrMapOrStruct *any) error {
 	return xml.Unmarshal(hr.body, sliceOrMapOrStruct)
 }
 
