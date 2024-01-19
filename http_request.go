@@ -207,13 +207,13 @@ func (hr *HttpRequest) Clone() *HttpRequest {
 func (hr *HttpRequest) Dump() {
 	fmt.Println(strings.Repeat("-", 50))
 
-	fmt.Printf("%10s : %s\n", "baseUrl", hr.baseUrl)
+	fmt.Printf("%10s : %s\n", "baseurl", hr.baseUrl)
 	fmt.Printf("%10s : %s\n", "path", hr.path)
 	fmt.Printf("%10s : %s\n", "method", hr.method)
 	fmt.Printf("%10s : %v\n", "parameters", hr.parameters)
 	fmt.Printf("%10s : %v\n", "headers", hr.headers)
 	fmt.Printf("%10s : %s\n", "body", hr.body)
-	fmt.Printf("%10s : %f\n", "timeout", hr.timeout)
+	fmt.Printf("%10s : %f seconds\n", "timeout", hr.timeout)
 
 	fmt.Println(strings.Repeat("-", 50))
 }
