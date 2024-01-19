@@ -115,7 +115,7 @@ func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
 }
 
 func (hr *HttpRequest) BaseUrl(requestUrl string) *HttpRequest {
-	hr.url = strings.Trim(requestUrl, "/")
+	hr.baseUrl = strings.Trim(requestUrl, "/")
 
 	return hr
 }
@@ -127,7 +127,7 @@ func (hr *HttpRequest) Url(requestUrl string) *HttpRequest {
 }
 
 func (hr *HttpRequest) Uri(requestUrl string) *HttpRequest {
-	hr.parseUrl(
+	hr.uri = hr.parseUrl(
 		strings.Trim(requestUrl, "/"),
 	)
 
