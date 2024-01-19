@@ -93,6 +93,12 @@ func (hr *HttpRequest) Url(requestUrl string) *HttpRequest {
 
 	queryStringSplit := strings.Split(queryString, "&")
 	for _, q := range queryStringSplit {
+		if !strings.Contains(q, "=") {
+			key, _ := url.QueryUnescape(q)
+			hr.parameters[key] = ""
+			continue
+		}
+
 		queryParamSplit := strings.Split(q, "=")
 		key, _ := url.QueryUnescape(queryParamSplit[0])
 		value, _ := url.QueryUnescape(queryParamSplit[1])
