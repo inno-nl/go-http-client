@@ -79,8 +79,26 @@ func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
 	return
 }
 
-func (hr *HttpRequest) Url(url string) *HttpRequest {
-	hr.url = url
+func (hr *HttpRequest) Url(requestUrl string) *HttpRequest {
+	if !strings.Contains("?", requestUrl) {
+		hr.url = requestUrl
+		return hr
+	}
+
+	parts := strings.Split(hr.url, "?")
+	baseUrl := parts[0]
+	queryString := parts[1]
+
+	hr.url = baseUrl
+
+	queryStringSplit := strings.Split(queryString, "&")
+	for _, q := range queryStringSplit {
+		queryParamSplit := strings.Split(q, "=")
+		key, _ := url.QueryUnescape(queryParamSplit[0])
+		value, _ := url.QueryUnescape(queryParamSplit[1])
+
+		hr.parameters[key] = value
+	}
 
 	return hr
 }
