@@ -19,6 +19,7 @@ type HttpRequest struct {
 	headers    map[string]string
 	body       string
 	timeout    float64 `default:"60"`
+	retryCount int64   `default:"0"`
 }
 
 func (hr *HttpRequest) generateUrl() string {
@@ -100,8 +101,17 @@ func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
 		req.Header.Set(k, v)
 	}
 
-	res, err := hc.Do(req)
-	if err != nil {
+	// Tries the request atleast once
+	var res *http.Response
+	for i := 0; i < int(hr.retryCount+1); i++ {
+		res, err = hc.Do(req)
+		if err == nil {
+			break
+		}
+	}
+
+	// If no response was given the request has failed
+	if res == nil {
 		return
 	}
 
@@ -181,6 +191,12 @@ func (hr *HttpRequest) Timeout(timeout float64) *HttpRequest {
 	return hr
 }
 
+func (hr *HttpRequest) RetryCount(retryCount int64) *HttpRequest {
+	hr.retryCount = retryCount
+
+	return hr
+}
+
 func (hr *HttpRequest) BasicAuth(user string, pass string) *HttpRequest {
 	hr.headers[AUTHORIZATION_HEADER] = fmt.Sprintf(
 		"Basic %s",
@@ -207,13 +223,14 @@ func (hr *HttpRequest) Clone() *HttpRequest {
 func (hr *HttpRequest) Dump() {
 	fmt.Println(strings.Repeat("-", 50))
 
-	fmt.Printf("%10s : %s\n", "baseurl", hr.baseUrl)
-	fmt.Printf("%10s : %s\n", "path", hr.path)
-	fmt.Printf("%10s : %s\n", "method", hr.method)
-	fmt.Printf("%10s : %v\n", "parameters", hr.parameters)
-	fmt.Printf("%10s : %v\n", "headers", hr.headers)
-	fmt.Printf("%10s : %s\n", "body", hr.body)
-	fmt.Printf("%10s : %f seconds\n", "timeout", hr.timeout)
+	fmt.Printf("%15s : %s\n", "baseurl", hr.baseUrl)
+	fmt.Printf("%15s : %s\n", "path", hr.path)
+	fmt.Printf("%15s : %s\n", "method", hr.method)
+	fmt.Printf("%15s : %v\n", "parameters", hr.parameters)
+	fmt.Printf("%15s : %v\n", "headers", hr.headers)
+	fmt.Printf("%15s : %s\n", "body", hr.body)
+	fmt.Printf("%15s : %f seconds\n", "timeout", hr.timeout)
+	fmt.Printf("%15s : %d times\n", "retry-count", hr.retryCount)
 
 	fmt.Println(strings.Repeat("-", 50))
 }
