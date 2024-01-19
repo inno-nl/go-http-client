@@ -21,12 +21,6 @@ type HttpRequest struct {
 }
 
 func (hr *HttpRequest) parseUrl() string {
-	if !strings.Contains("?", hr.url) {
-		return hr.url
-	}
-
-	baseUrl := strings.Split(hr.url, "?")[0]
-
 	parameters := make([]string, 0)
 
 	for k, v := range hr.parameters {
@@ -39,7 +33,7 @@ func (hr *HttpRequest) parseUrl() string {
 
 	return fmt.Sprintf(
 		"%s?%s",
-		baseUrl,
+		hr.url,
 		strings.Join(parameters, "&"),
 	)
 }
