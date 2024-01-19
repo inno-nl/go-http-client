@@ -75,33 +75,6 @@ func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
 	return
 }
 
-func (hr *HttpRequest) ExecuteRaw() (response *HttpResponse, err error) {
-	hc := &http.Client{
-		Timeout: time.Duration(hr.timeout) * time.Second,
-	}
-
-	req, err := http.NewRequest(
-		hr.method,
-		hr.parseUrl(),
-		hr.parseBody(),
-	)
-	if err != nil {
-		return
-	}
-
-	for k, v := range hr.headers {
-		req.Header.Set(k, v)
-	}
-
-	resp, err := hc.Do(req)
-	if err != nil {
-		return
-	}
-
-	response = newHttpResponse(resp)
-	return
-}
-
 func (hr *HttpRequest) Url(requestUrl string) *HttpRequest {
 	if !strings.Contains("?", requestUrl) {
 		hr.url = requestUrl
