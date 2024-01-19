@@ -14,7 +14,7 @@ import (
 type HttpRequest struct {
 	url        string
 	method     string
-	parameters map[string]string
+	parameters map[string][]string
 	headers    map[string]string
 	body       string
 	timeout    float64 `default:"60"`
@@ -23,12 +23,14 @@ type HttpRequest struct {
 func (hr *HttpRequest) parseUrl() string {
 	parameters := make([]string, 0)
 
-	for k, v := range hr.parameters {
-		parameters = append(parameters, fmt.Sprintf(
-			"%s=%s",
-			url.QueryEscape(k),
-			url.QueryEscape(v),
-		))
+	for key, values := range hr.parameters {
+		for _, v := range values {
+			parameters = append(parameters, fmt.Sprintf(
+				"%s=%s",
+				url.QueryEscape(key),
+				url.QueryEscape(v),
+			))
+		}
 	}
 
 	return fmt.Sprintf(
@@ -89,7 +91,7 @@ func (hr *HttpRequest) Url(requestUrl string) *HttpRequest {
 	for _, q := range queryStringSplit {
 		if !strings.Contains(q, "=") {
 			key, _ := url.QueryUnescape(q)
-			hr.parameters[key] = ""
+			hr.Parameter(key, "")
 			continue
 		}
 
@@ -97,7 +99,7 @@ func (hr *HttpRequest) Url(requestUrl string) *HttpRequest {
 		key, _ := url.QueryUnescape(queryParamSplit[0])
 		value, _ := url.QueryUnescape(queryParamSplit[1])
 
-		hr.parameters[key] = value
+		hr.Parameter(key, value)
 	}
 
 	return hr
@@ -110,7 +112,10 @@ func (hr *HttpRequest) Method(method string) *HttpRequest {
 }
 
 func (hr *HttpRequest) Parameter(key string, value string) *HttpRequest {
-	hr.parameters[key] = value
+	hr.parameters[key] = append(
+		hr.parameters[key],
+		value,
+	)
 
 	return hr
 }

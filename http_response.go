@@ -12,7 +12,7 @@ type HttpResponse struct {
 	Payload    string
 }
 
-func (hr *HttpResponse) Unmarshal(sliceOrMapOrStruct *any) error {
+func (hr *HttpResponse) Json(sliceOrMapOrStruct *any) error {
 	return json.Unmarshal([]byte(hr.Payload), sliceOrMapOrStruct)
 }
 
