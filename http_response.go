@@ -8,22 +8,38 @@ import (
 )
 
 type HttpResponse struct {
-	body []byte
-
+	Response   *http.Response
+	Body       []byte
 	StatusCode int64
 	Headers    map[string]string
 }
 
+func (hr *HttpResponse) readBody() {
+	if hr.Body != nil {
+		return
+	}
+
+	bytes := []byte{}
+	_, _ = hr.Response.Body.Read(bytes)
+	hr.Body = bytes
+}
+
 func (hr *HttpResponse) String() string {
-	return string(hr.body)
+	hr.readBody()
+
+	return string(hr.Body)
 }
 
 func (hr *HttpResponse) Json(sliceOrMapOrStruct *any) error {
-	return json.Unmarshal(hr.body, sliceOrMapOrStruct)
+	hr.readBody()
+
+	return json.Unmarshal(hr.Body, sliceOrMapOrStruct)
 }
 
 func (hr *HttpResponse) Xml(sliceOrMapOrStruct *any) error {
-	return xml.Unmarshal(hr.body, sliceOrMapOrStruct)
+	hr.readBody()
+
+	return xml.Unmarshal(hr.Body, sliceOrMapOrStruct)
 }
 
 func newHttpResponse(resp *http.Response) *HttpResponse {
@@ -39,9 +55,7 @@ func newHttpResponse(resp *http.Response) *HttpResponse {
 		hr.Headers[hK] = strings.Join(hV, ", ")
 	}
 
-	bytes := []byte{}
-	_, _ = resp.Body.Read(bytes)
-	hr.body = bytes
+	hr.Response = resp
 
 	return hr
 }
