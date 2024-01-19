@@ -121,7 +121,7 @@ func (hr *HttpRequest) BaseUrl(requestUrl string) *HttpRequest {
 }
 
 func (hr *HttpRequest) Url(requestUrl string) *HttpRequest {
-	hr.parseUrl(requestUrl)
+	hr.url = hr.parseUrl(requestUrl)
 
 	return hr
 }
