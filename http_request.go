@@ -198,3 +198,8 @@ func (hr *HttpRequest) BearerAuth(token string) *HttpRequest {
 
 	return hr
 }
+
+func (hr *HttpRequest) Clone() *HttpRequest {
+	cloned := *hr
+	return &cloned
+}
