@@ -159,7 +159,7 @@ func (hr *HttpRequest) BasicAuth(user string, pass string) *HttpRequest {
 
 func (hr *HttpRequest) BearerAuth(token string) *HttpRequest {
 	hr.headers[AUTHORIZATION_HEADER] = fmt.Sprintf(
-		"Basic %s",
+		"Bearer %s",
 		token,
 	)
 
