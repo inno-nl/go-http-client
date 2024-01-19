@@ -1,33 +1,23 @@
 package httpclient
 
 func Get() *HttpRequest {
-	return &HttpRequest{
-		method: GET,
-	}
+	return NewRequest().Method(GET)
 }
 
 func Post() *HttpRequest {
-	return &HttpRequest{
-		method: POST,
-	}
+	return NewRequest().Method(POST)
 }
 
 func Put() *HttpRequest {
-	return &HttpRequest{
-		method: PUT,
-	}
+	return NewRequest().Method(PUT)
 }
 
 func Patch() *HttpRequest {
-	return &HttpRequest{
-		method: PATCH,
-	}
+	return NewRequest().Method(PATCH)
 }
 
 func Delete() *HttpRequest {
-	return &HttpRequest{
-		method: DELETE,
-	}
+	return NewRequest().Method(DELETE)
 }
 
 func NewRequest() *HttpRequest {
