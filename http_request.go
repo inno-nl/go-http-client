@@ -112,6 +112,11 @@ func (hr *HttpRequest) Method(method string) *HttpRequest {
 }
 
 func (hr *HttpRequest) Parameter(key string, value string) *HttpRequest {
+	_, exists := hr.parameters[key]
+	if !exists {
+		hr.parameters[key] = make([]string, 0)
+	}
+
 	hr.parameters[key] = append(
 		hr.parameters[key],
 		value,
