@@ -13,8 +13,8 @@ import (
 
 type HttpRequest struct {
 	baseUrl    string
+	path       string
 	url        string
-	uri        string
 	method     string
 	parameters map[string][]string
 	headers    map[string]string
@@ -23,11 +23,11 @@ type HttpRequest struct {
 }
 
 func (hr *HttpRequest) generateUrl() string {
-	if hr.baseUrl != "" && hr.url == "" {
+	if hr.url == "" {
 		hr.url = fmt.Sprintf(
 			"%s/%s",
 			hr.baseUrl,
-			hr.uri,
+			hr.path,
 		)
 	}
 
@@ -115,21 +115,21 @@ func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
 }
 
 func (hr *HttpRequest) BaseUrl(requestUrl string) *HttpRequest {
-	hr.baseUrl = strings.Trim(requestUrl, "/")
+	hr.baseUrl = strings.TrimRight(requestUrl, "/")
 
 	return hr
 }
 
-func (hr *HttpRequest) Url(requestUrl string) *HttpRequest {
-	hr.url = hr.parseUrl(requestUrl)
-
-	return hr
-}
-
-func (hr *HttpRequest) Uri(requestUrl string) *HttpRequest {
-	hr.uri = hr.parseUrl(
-		strings.Trim(requestUrl, "/"),
+func (hr *HttpRequest) Path(requestUrl string) *HttpRequest {
+	hr.path = hr.parseUrl(
+		strings.TrimLeft(requestUrl, "/"),
 	)
+
+	return hr
+}
+
+func (hr *HttpRequest) OverrideUrl(requestUrl string) *HttpRequest {
+	hr.url = hr.parseUrl(requestUrl)
 
 	return hr
 }
