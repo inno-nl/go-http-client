@@ -23,7 +23,7 @@ type HttpRequest struct {
 }
 
 func (hr *HttpRequest) generateUrl() string {
-	if hr.baseUrl != "" {
+	if hr.baseUrl != "" && hr.url == "" {
 		hr.url = fmt.Sprintf(
 			"%s/%s",
 			hr.baseUrl,
