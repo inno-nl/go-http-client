@@ -14,7 +14,6 @@ import (
 type HttpRequest struct {
 	baseUrl    string
 	path       string
-	url        string
 	method     string
 	parameters map[string][]string
 	headers    map[string]string
@@ -23,13 +22,11 @@ type HttpRequest struct {
 }
 
 func (hr *HttpRequest) generateUrl() string {
-	if hr.url == "" {
-		hr.url = fmt.Sprintf(
-			"%s/%s",
-			hr.baseUrl,
-			hr.path,
-		)
-	}
+	fullUrl := fmt.Sprintf(
+		"%s/%s",
+		strings.TrimRight(hr.baseUrl, "/"),
+		strings.TrimLeft(hr.path, "/"),
+	)
 
 	parameters := make([]string, 0)
 
@@ -45,7 +42,7 @@ func (hr *HttpRequest) generateUrl() string {
 
 	return fmt.Sprintf(
 		"%s?%s",
-		hr.url,
+		fullUrl,
 		strings.Join(parameters, "&"),
 	)
 }
@@ -58,16 +55,14 @@ func (hr *HttpRequest) parseBody() io.Reader {
 	return nil
 }
 
-func (hr *HttpRequest) parseUrl(requestUrl string) string {
+func (hr *HttpRequest) extractParametersFromUrl(requestUrl string) string {
 	if !strings.Contains("?", requestUrl) {
-		return requestUrl
+		return strings.TrimRight(requestUrl, "/")
 	}
 
-	parts := strings.Split(hr.url, "?")
-	baseUrl := parts[0]
+	parts := strings.Split(requestUrl, "?")
+	urlString := parts[0]
 	queryString := parts[1]
-
-	hr.url = baseUrl
 
 	queryStringSplit := strings.Split(queryString, "&")
 	for _, q := range queryStringSplit {
@@ -84,7 +79,7 @@ func (hr *HttpRequest) parseUrl(requestUrl string) string {
 		hr.Parameter(key, value)
 	}
 
-	return requestUrl
+	return strings.TrimRight(urlString, "/")
 }
 
 func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
@@ -105,12 +100,12 @@ func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
 		req.Header.Set(k, v)
 	}
 
-	resp, err := hc.Do(req)
+	res, err := hc.Do(req)
 	if err != nil {
 		return
 	}
 
-	response = newHttpResponse(resp)
+	response = newHttpResponse(hr, res)
 	return
 }
 
@@ -121,15 +116,20 @@ func (hr *HttpRequest) BaseUrl(requestUrl string) *HttpRequest {
 }
 
 func (hr *HttpRequest) Path(requestUrl string) *HttpRequest {
-	hr.path = hr.parseUrl(
-		strings.TrimLeft(requestUrl, "/"),
-	)
+	hr.path = strings.TrimLeft(requestUrl, "/")
 
 	return hr
 }
 
 func (hr *HttpRequest) OverrideUrl(requestUrl string) *HttpRequest {
-	hr.url = hr.parseUrl(requestUrl)
+	parsedUrl, _ := url.Parse(hr.extractParametersFromUrl(requestUrl))
+
+	hr.baseUrl = fmt.Sprintf(
+		"%s://%s",
+		parsedUrl.Scheme,
+		parsedUrl.Host,
+	)
+	hr.path = parsedUrl.Path
 
 	return hr
 }
@@ -202,4 +202,18 @@ func (hr *HttpRequest) BearerAuth(token string) *HttpRequest {
 func (hr *HttpRequest) Clone() *HttpRequest {
 	cloned := *hr
 	return &cloned
+}
+
+func (hr *HttpRequest) Dump() {
+	fmt.Println(strings.Repeat("-", 50))
+
+	fmt.Printf("%10s : %s\n", "baseUrl", hr.baseUrl)
+	fmt.Printf("%10s : %s\n", "path", hr.path)
+	fmt.Printf("%10s : %s\n", "method", hr.method)
+	fmt.Printf("%10s : %v\n", "parameters", hr.parameters)
+	fmt.Printf("%10s : %v\n", "headers", hr.headers)
+	fmt.Printf("%10s : %s\n", "body", hr.body)
+	fmt.Printf("%10s : %f\n", "timeout", hr.timeout)
+
+	fmt.Println(strings.Repeat("-", 50))
 }

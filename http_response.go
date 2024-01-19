@@ -8,6 +8,7 @@ import (
 )
 
 type HttpResponse struct {
+	Request    *HttpRequest
 	Response   *http.Response
 	Body       []byte
 	StatusCode int64
@@ -42,20 +43,21 @@ func (hr *HttpResponse) Xml(sliceOrMapOrStruct *any) error {
 	return xml.Unmarshal(hr.Body, sliceOrMapOrStruct)
 }
 
-func newHttpResponse(resp *http.Response) *HttpResponse {
+func newHttpResponse(req *HttpRequest, res *http.Response) *HttpResponse {
 	hr := &HttpResponse{}
 
-	hr.StatusCode = int64(resp.StatusCode)
+	hr.StatusCode = int64(res.StatusCode)
 
-	for hK, hV := range resp.Header {
-		if len(hV) == 0 {
+	for k, v := range res.Header {
+		if len(v) == 0 {
 			continue
 		}
 
-		hr.Headers[hK] = strings.Join(hV, ", ")
+		hr.Headers[k] = strings.Join(v, ", ")
 	}
 
-	hr.Response = resp
+	hr.Request = req
+	hr.Response = res
 
 	return hr
 }
