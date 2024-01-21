@@ -14,7 +14,7 @@ import (
 type HttpRequest struct {
 	baseUrl    string
 	path       string
-	method     string
+	method     string `default:"GET"`
 	parameters map[string][]string
 	headers    map[string]string
 	body       string
@@ -49,6 +49,10 @@ func (hr *HttpRequest) generateUrl() string {
 }
 
 func (hr *HttpRequest) parseBody() io.Reader {
+	if hr.method == GET {
+		return nil
+	}
+
 	if hr.body != "" {
 		return strings.NewReader(hr.body)
 	}
