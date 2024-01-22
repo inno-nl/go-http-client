@@ -29,5 +29,5 @@ To unmarshal a json body to a slice, map or struct, use the following code:
 ```
 unMarshalInto := make([]string, 0)
 
-err := resp.Unmarshal(&unMarshalInto)
+err := resp.Json(&unMarshalInto)
 ```
