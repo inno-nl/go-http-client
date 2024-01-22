@@ -7,6 +7,25 @@ import (
 	"strings"
 )
 
+func newHttpResponse(req *HttpRequest, res *http.Response) *HttpResponse {
+	hr := &HttpResponse{}
+
+	hr.StatusCode = int64(res.StatusCode)
+
+	for k, v := range res.Header {
+		if len(v) == 0 {
+			continue
+		}
+
+		hr.Headers[k] = strings.Join(v, ", ")
+	}
+
+	hr.Request = req
+	hr.Response = res
+
+	return hr
+}
+
 type HttpResponse struct {
 	Request    *HttpRequest
 	Response   *http.Response
@@ -41,23 +60,4 @@ func (hr *HttpResponse) Xml(sliceOrMapOrStruct *any) error {
 	hr.readBody()
 
 	return xml.Unmarshal(hr.Body, sliceOrMapOrStruct)
-}
-
-func newHttpResponse(req *HttpRequest, res *http.Response) *HttpResponse {
-	hr := &HttpResponse{}
-
-	hr.StatusCode = int64(res.StatusCode)
-
-	for k, v := range res.Header {
-		if len(v) == 0 {
-			continue
-		}
-
-		hr.Headers[k] = strings.Join(v, ", ")
-	}
-
-	hr.Request = req
-	hr.Response = res
-
-	return hr
 }

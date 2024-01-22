@@ -4,7 +4,7 @@ type BaseClient struct {
 	baseUrl string
 }
 
-func (bc *BaseClient) SetBaseUrl(requestUrl string) {
+func (bc *BaseClient) BaseUrl(requestUrl string) {
 	bc.baseUrl = requestUrl
 }
 

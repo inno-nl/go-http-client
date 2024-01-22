@@ -22,107 +22,6 @@ type HttpRequest struct {
 	retryCount int64   `default:"0"`
 }
 
-func (hr *HttpRequest) generateUrl() string {
-	fullUrl := fmt.Sprintf(
-		"%s/%s",
-		strings.TrimRight(hr.baseUrl, "/"),
-		strings.TrimLeft(hr.path, "/"),
-	)
-
-	parameters := make([]string, 0)
-
-	for key, values := range hr.parameters {
-		for _, v := range values {
-			parameters = append(parameters, fmt.Sprintf(
-				"%s=%s",
-				url.QueryEscape(key),
-				url.QueryEscape(v),
-			))
-		}
-	}
-
-	return fmt.Sprintf(
-		"%s?%s",
-		fullUrl,
-		strings.Join(parameters, "&"),
-	)
-}
-
-func (hr *HttpRequest) parseBody() io.Reader {
-	if hr.method == GET {
-		return nil
-	}
-
-	if hr.body != "" {
-		return strings.NewReader(hr.body)
-	}
-
-	return nil
-}
-
-func (hr *HttpRequest) extractParametersFromUrl(requestUrl string) string {
-	if !strings.Contains("?", requestUrl) {
-		return strings.TrimRight(requestUrl, "/")
-	}
-
-	parts := strings.Split(requestUrl, "?")
-	urlString := parts[0]
-	queryString := parts[1]
-
-	queryStringSplit := strings.Split(queryString, "&")
-	for _, q := range queryStringSplit {
-		if !strings.Contains(q, "=") {
-			key, _ := url.QueryUnescape(q)
-			hr.Parameter(key, "")
-			continue
-		}
-
-		queryParamSplit := strings.Split(q, "=")
-		key, _ := url.QueryUnescape(queryParamSplit[0])
-		value, _ := url.QueryUnescape(queryParamSplit[1])
-
-		hr.Parameter(key, value)
-	}
-
-	return strings.TrimRight(urlString, "/")
-}
-
-func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
-	hc := &http.Client{
-		Timeout: time.Duration(hr.timeout) * time.Second,
-	}
-
-	req, err := http.NewRequest(
-		hr.method,
-		hr.generateUrl(),
-		hr.parseBody(),
-	)
-	if err != nil {
-		return
-	}
-
-	for k, v := range hr.headers {
-		req.Header.Set(k, v)
-	}
-
-	// Tries the request atleast once
-	var res *http.Response
-	for i := 0; i < int(hr.retryCount+1); i++ {
-		res, err = hc.Do(req)
-		if err == nil {
-			break
-		}
-	}
-
-	// If no response was given the request has failed
-	if res == nil {
-		return
-	}
-
-	response = newHttpResponse(hr, res)
-	return
-}
-
 func (hr *HttpRequest) BaseUrl(requestUrl string) *HttpRequest {
 	hr.baseUrl = strings.TrimRight(requestUrl, "/")
 
@@ -144,12 +43,6 @@ func (hr *HttpRequest) OverrideUrl(requestUrl string) *HttpRequest {
 		parsedUrl.Host,
 	)
 	hr.path = parsedUrl.Path
-
-	return hr
-}
-
-func (hr *HttpRequest) Method(method string) *HttpRequest {
-	hr.method = method
 
 	return hr
 }
@@ -219,22 +112,139 @@ func (hr *HttpRequest) BearerAuth(token string) *HttpRequest {
 	return hr
 }
 
-func (hr *HttpRequest) Clone() *HttpRequest {
-	cloned := *hr
-	return &cloned
+func (hr *HttpRequest) Get() (response *HttpResponse, err error) {
+	hr.method = GET
+
+	return hr.execute()
 }
 
-func (hr *HttpRequest) Dump() {
-	fmt.Println(strings.Repeat("-", 50))
+func (hr *HttpRequest) Post() (response *HttpResponse, err error) {
+	hr.method = POST
 
-	fmt.Printf("%15s : %s\n", "baseurl", hr.baseUrl)
-	fmt.Printf("%15s : %s\n", "path", hr.path)
-	fmt.Printf("%15s : %s\n", "method", hr.method)
-	fmt.Printf("%15s : %v\n", "parameters", hr.parameters)
-	fmt.Printf("%15s : %v\n", "headers", hr.headers)
-	fmt.Printf("%15s : %s\n", "body", hr.body)
-	fmt.Printf("%15s : %f seconds\n", "timeout", hr.timeout)
-	fmt.Printf("%15s : %d times\n", "retry-count", hr.retryCount)
+	return hr.execute()
+}
 
-	fmt.Println(strings.Repeat("-", 50))
+func (hr *HttpRequest) Put() (response *HttpResponse, err error) {
+	hr.method = PUT
+
+	return hr.execute()
+}
+
+func (hr *HttpRequest) Patch() (response *HttpResponse, err error) {
+	hr.method = PATCH
+
+	return hr.execute()
+}
+
+func (hr *HttpRequest) Delete() (response *HttpResponse, err error) {
+	hr.method = DELETE
+
+	return hr.execute()
+}
+
+func (hr *HttpRequest) CustomMethod(method string) (response *HttpResponse, err error) {
+	hr.method = method
+
+	return hr.execute()
+}
+
+func (hr *HttpRequest) execute() (response *HttpResponse, err error) {
+	hc := &http.Client{
+		Timeout: time.Duration(hr.timeout) * time.Second,
+	}
+
+	req, err := http.NewRequest(
+		hr.method,
+		hr.generateUrl(),
+		hr.parseBody(),
+	)
+	if err != nil {
+		return
+	}
+
+	for k, v := range hr.headers {
+		req.Header.Set(k, v)
+	}
+
+	// Tries the request atleast once
+	var res *http.Response
+	for i := 0; i < int(hr.retryCount+1); i++ {
+		res, err = hc.Do(req)
+		if err == nil {
+			break
+		}
+	}
+
+	// If no response was given the request has failed
+	if res == nil {
+		return
+	}
+
+	response = newHttpResponse(hr, res)
+	return
+}
+
+func (hr *HttpRequest) generateUrl() string {
+	fullUrl := fmt.Sprintf(
+		"%s/%s",
+		strings.TrimRight(hr.baseUrl, "/"),
+		strings.TrimLeft(hr.path, "/"),
+	)
+
+	parameters := make([]string, 0)
+
+	for key, values := range hr.parameters {
+		for _, v := range values {
+			parameters = append(parameters, fmt.Sprintf(
+				"%s=%s",
+				url.QueryEscape(key),
+				url.QueryEscape(v),
+			))
+		}
+	}
+
+	return fmt.Sprintf(
+		"%s?%s",
+		fullUrl,
+		strings.Join(parameters, "&"),
+	)
+}
+
+func (hr *HttpRequest) parseBody() io.Reader {
+	if hr.method == GET {
+		return nil
+	}
+
+	if hr.body != "" {
+		return strings.NewReader(hr.body)
+	}
+
+	return nil
+}
+
+func (hr *HttpRequest) extractParametersFromUrl(requestUrl string) string {
+	if !strings.Contains("?", requestUrl) {
+		return strings.TrimRight(requestUrl, "/")
+	}
+
+	parts := strings.Split(requestUrl, "?")
+	urlString := parts[0]
+	queryString := parts[1]
+
+	queryStringSplit := strings.Split(queryString, "&")
+	for _, q := range queryStringSplit {
+		if !strings.Contains(q, "=") {
+			key, _ := url.QueryUnescape(q)
+			hr.Parameter(key, "")
+			continue
+		}
+
+		queryParamSplit := strings.Split(q, "=")
+		key, _ := url.QueryUnescape(queryParamSplit[0])
+		value, _ := url.QueryUnescape(queryParamSplit[1])
+
+		hr.Parameter(key, value)
+	}
+
+	return strings.TrimRight(urlString, "/")
 }

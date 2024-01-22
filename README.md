@@ -14,12 +14,11 @@ Requests are built using method chaining. Here is an example:
 ```
 resp, err := httpclient.NewRequest().
     Url("https://inno.dev").
-    Method("POST").
     Parameter("lang", "nl").
     Header("visitor_id", "AB3H71H29").
     Json(struct{Message string}{Message: "Hello, world!"}).
     Timeout(10).
-    Execute()
+    Post()
 ```
 
 ## 3 Handling the response
