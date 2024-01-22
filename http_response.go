@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func newHttpResponse(req *HttpRequest, res *http.Response) *HttpResponse {
+func newHttpResponse(res *http.Response) *HttpResponse {
 	hr := &HttpResponse{}
 
 	hr.StatusCode = int64(res.StatusCode)
@@ -20,14 +20,12 @@ func newHttpResponse(req *HttpRequest, res *http.Response) *HttpResponse {
 		hr.Headers[k] = strings.Join(v, ", ")
 	}
 
-	hr.Request = req
 	hr.Response = res
 
 	return hr
 }
 
 type HttpResponse struct {
-	Request    *HttpRequest
 	Response   *http.Response
 	Body       []byte
 	StatusCode int64

@@ -180,7 +180,7 @@ func (hr *HttpRequest) execute() (response *HttpResponse, err error) {
 		return
 	}
 
-	response = newHttpResponse(hr, res)
+	response = newHttpResponse(res)
 	return
 }
 
