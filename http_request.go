@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -61,9 +62,22 @@ func (hr *HttpRequest) Parameter(key string, value string) *HttpRequest {
 	return hr
 }
 
-func (hr *HttpRequest) Parameters(parameters map[string]string) *HttpRequest {
+func (hr *HttpRequest) Parameters(parameters map[string]any) *HttpRequest {
 	for k, v := range parameters {
-		hr.Parameter(k, v)
+		vType := fmt.Sprint(reflect.TypeOf(v).Kind())
+
+		if vType == "string" {
+			hr.Parameter(k, v.(string))
+			continue
+		}
+
+		if vType == "slice" {
+			slice := v.([]string)
+
+			for _, sv := range slice {
+				hr.Parameter(k, sv)
+			}
+		}
 	}
 
 	return hr
