@@ -61,8 +61,24 @@ func (hr *HttpRequest) Parameter(key string, value string) *HttpRequest {
 	return hr
 }
 
+func (hr *HttpRequest) Parameters(parameters map[string]string) *HttpRequest {
+	for k, v := range parameters {
+		hr.Parameter(k, v)
+	}
+
+	return hr
+}
+
 func (hr *HttpRequest) Header(key string, value string) *HttpRequest {
 	hr.headers[key] = value
+
+	return hr
+}
+
+func (hr *HttpRequest) Headers(headers map[string]string) *HttpRequest {
+	for k, v := range headers {
+		hr.Header(k, v)
+	}
 
 	return hr
 }
