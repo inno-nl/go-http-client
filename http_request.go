@@ -49,6 +49,10 @@ func (hr *HttpRequest) FullUrl(requestUrl string) *HttpRequest {
 }
 
 func (hr *HttpRequest) Parameter(key string, value string) *HttpRequest {
+	if hr.parameters == nil {
+		hr.parameters = make(map[string][]string)
+	}
+
 	_, exists := hr.parameters[key]
 	if !exists {
 		hr.parameters[key] = make([]string, 0)
@@ -63,6 +67,10 @@ func (hr *HttpRequest) Parameter(key string, value string) *HttpRequest {
 }
 
 func (hr *HttpRequest) Parameters(parameters map[string]any) *HttpRequest {
+	if hr.parameters == nil {
+		hr.parameters = make(map[string][]string)
+	}
+
 	for k, v := range parameters {
 		vType := fmt.Sprint(reflect.TypeOf(v).Kind())
 
@@ -84,12 +92,20 @@ func (hr *HttpRequest) Parameters(parameters map[string]any) *HttpRequest {
 }
 
 func (hr *HttpRequest) Header(key string, value string) *HttpRequest {
+	if hr.headers == nil {
+		hr.headers = make(map[string]string)
+	}
+
 	hr.headers[key] = value
 
 	return hr
 }
 
 func (hr *HttpRequest) Headers(headers map[string]string) *HttpRequest {
+	if hr.headers == nil {
+		hr.headers = make(map[string]string)
+	}
+
 	for k, v := range headers {
 		hr.Header(k, v)
 	}
