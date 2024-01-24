@@ -226,6 +226,10 @@ func (hr *HttpRequest) generateUrl() string {
 		strings.TrimLeft(hr.path, "/"),
 	)
 
+	if len(hr.parameters) == 0 {
+		return fullUrl
+	}
+
 	parameters := make([]string, 0)
 
 	for key, values := range hr.parameters {
