@@ -12,6 +12,7 @@ func newHttpResponse(res *http.Response) *HttpResponse {
 
 	hr.StatusCode = int64(res.StatusCode)
 
+	hr.Headers = make(map[string]string)
 	for k, v := range res.Header {
 		if len(v) == 0 {
 			continue
