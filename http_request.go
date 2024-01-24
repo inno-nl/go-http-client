@@ -35,6 +35,12 @@ func (hr *HttpRequest) Path(requestUrl string) *HttpRequest {
 	return hr
 }
 
+func (hr *HttpRequest) Method(method string) *HttpRequest {
+	hr.method = method
+
+	return hr
+}
+
 func (hr *HttpRequest) FullUrl(requestUrl string) *HttpRequest {
 	parsedUrl, _ := url.Parse(hr.extractParametersFromUrl(requestUrl))
 
@@ -158,43 +164,7 @@ func (hr *HttpRequest) BearerAuth(token string) *HttpRequest {
 	return hr
 }
 
-func (hr *HttpRequest) Get() (response *HttpResponse, err error) {
-	hr.method = GET
-
-	return hr.execute()
-}
-
-func (hr *HttpRequest) Post() (response *HttpResponse, err error) {
-	hr.method = POST
-
-	return hr.execute()
-}
-
-func (hr *HttpRequest) Put() (response *HttpResponse, err error) {
-	hr.method = PUT
-
-	return hr.execute()
-}
-
-func (hr *HttpRequest) Patch() (response *HttpResponse, err error) {
-	hr.method = PATCH
-
-	return hr.execute()
-}
-
-func (hr *HttpRequest) Delete() (response *HttpResponse, err error) {
-	hr.method = DELETE
-
-	return hr.execute()
-}
-
-func (hr *HttpRequest) CustomMethod(method string) (response *HttpResponse, err error) {
-	hr.method = method
-
-	return hr.execute()
-}
-
-func (hr *HttpRequest) execute() (response *HttpResponse, err error) {
+func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
 	hc := &http.Client{
 		Timeout: time.Duration(hr.timeout) * time.Second,
 	}
