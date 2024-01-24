@@ -3,6 +3,7 @@ package httpclient
 import (
 	"encoding/json"
 	"encoding/xml"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -38,11 +39,7 @@ func (hr *HttpResponse) readBody() {
 		return
 	}
 
-	bytes := []byte{}
-	_, err := hr.Response.Body.Read(bytes)
-	if err != nil {
-		panic(err)
-	}
+	bytes, _ := io.ReadAll(hr.Response.Body)
 	hr.Body = bytes
 }
 
