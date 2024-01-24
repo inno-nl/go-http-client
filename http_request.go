@@ -35,7 +35,7 @@ func (hr *HttpRequest) Path(requestUrl string) *HttpRequest {
 	return hr
 }
 
-func (hr *HttpRequest) OverrideUrl(requestUrl string) *HttpRequest {
+func (hr *HttpRequest) FullUrl(requestUrl string) *HttpRequest {
 	parsedUrl, _ := url.Parse(hr.extractParametersFromUrl(requestUrl))
 
 	hr.baseUrl = fmt.Sprintf(
