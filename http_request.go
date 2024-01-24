@@ -15,7 +15,7 @@ import (
 type HttpRequest struct {
 	baseUrl    string
 	path       string
-	method     string `default:"GET"`
+	method     string
 	parameters map[string][]string
 	headers    map[string]string
 	body       string
@@ -123,6 +123,10 @@ func (hr *HttpRequest) Body(body string) *HttpRequest {
 	hr.body = body
 	hr.Header("Content-type", "text/plain")
 
+	if hr.method == "" {
+		hr.method = POST
+	}
+
 	return hr
 }
 
@@ -131,7 +135,7 @@ func (hr *HttpRequest) Json(body any) *HttpRequest {
 	hr.body = string(bytes)
 	hr.Header("Content-type", "application/json")
 
-	if hr.method == GET {
+	if hr.method == "" {
 		hr.method = POST
 	}
 
@@ -173,8 +177,10 @@ func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
 		Timeout: time.Duration(hr.timeout) * time.Second,
 	}
 
-	fmt.Println("METHOD")
-	fmt.Println(hr.method)
+	if hr.method == "" {
+		hr.method = GET
+	}
+
 	req, err := http.NewRequest(
 		hr.method,
 		hr.generateUrl(),
@@ -207,7 +213,7 @@ func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
 		return
 	}
 
-	response = newHttpResponse(res)
+	response = newHttpResponse(req, res)
 	return
 }
 
