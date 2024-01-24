@@ -192,6 +192,11 @@ func (hr *HttpRequest) execute() (response *HttpResponse, err error) {
 		return
 	}
 
+	req.Header.Set(
+		"user-agent",
+		"inno-go-http-client",
+	)
+
 	for k, v := range hr.headers {
 		req.Header.Set(k, v)
 	}
