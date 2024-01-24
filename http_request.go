@@ -20,8 +20,8 @@ type HttpRequest struct {
 	headers     map[string]string
 	contentType string
 	body        string
-	timeout     float64 `default:"60"`
-	retryCount  int64   `default:"0"`
+	timeout     float64
+	retryCount  int64
 }
 
 func (hr *HttpRequest) BaseUrl(requestUrl string) *HttpRequest {
