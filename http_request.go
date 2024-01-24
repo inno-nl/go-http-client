@@ -13,14 +13,15 @@ import (
 )
 
 type HttpRequest struct {
-	baseUrl    string
-	path       string
-	method     string
-	parameters map[string][]string
-	headers    map[string]string
-	body       string
-	timeout    float64 `default:"60"`
-	retryCount int64   `default:"0"`
+	baseUrl     string
+	path        string
+	method      string
+	parameters  map[string][]string
+	headers     map[string]string
+	contentType string
+	body        string
+	timeout     float64 `default:"60"`
+	retryCount  int64   `default:"0"`
 }
 
 func (hr *HttpRequest) BaseUrl(requestUrl string) *HttpRequest {
@@ -119,9 +120,18 @@ func (hr *HttpRequest) Headers(headers map[string]string) *HttpRequest {
 	return hr
 }
 
+func (hr *HttpRequest) ContentType(contentType string) *HttpRequest {
+	hr.contentType = contentType
+
+	return hr
+}
+
 func (hr *HttpRequest) Body(body string) *HttpRequest {
 	hr.body = body
-	hr.Header("Content-type", "text/plain")
+
+	if hr.contentType == "" {
+		hr.ContentType("text/plain")
+	}
 
 	if hr.method == "" {
 		hr.method = POST
@@ -133,7 +143,10 @@ func (hr *HttpRequest) Body(body string) *HttpRequest {
 func (hr *HttpRequest) Json(body any) *HttpRequest {
 	bytes, _ := json.Marshal(body)
 	hr.body = string(bytes)
-	hr.Header("Content-type", "application/json")
+
+	if hr.contentType == "" {
+		hr.ContentType("application/json")
+	}
 
 	if hr.method == "" {
 		hr.method = POST
@@ -194,6 +207,10 @@ func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
 		"user-agent",
 		"inno-go-http-client",
 	)
+
+	if hr.contentType != "" {
+		req.Header.Set("Content-type", hr.contentType)
+	}
 
 	for k, v := range hr.headers {
 		req.Header.Set(k, v)
