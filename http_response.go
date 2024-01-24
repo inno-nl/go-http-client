@@ -62,3 +62,7 @@ func (hr *HttpResponse) Xml(sliceOrMapOrStruct *any) error {
 
 	return xml.Unmarshal(hr.Body, sliceOrMapOrStruct)
 }
+
+func (hr *HttpResponse) Success() bool {
+	return hr.StatusCode >= 200 && hr.StatusCode < 300
+}
