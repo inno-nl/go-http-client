@@ -39,7 +39,10 @@ func (hr *HttpResponse) readBody() {
 		return
 	}
 
-	bytes, _ := io.ReadAll(hr.Response.Body)
+	bytes, err := io.ReadAll(hr.Response.Body)
+	if err != nil {
+		panic(err)
+	}
 	hr.Body = bytes
 }
 
