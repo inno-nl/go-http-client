@@ -131,7 +131,9 @@ func (hr *HttpRequest) Json(body any) *HttpRequest {
 	hr.body = string(bytes)
 	hr.Header("Content-type", "application/json")
 
-	hr.method = POST
+	if hr.method == GET {
+		hr.method = POST
+	}
 
 	return hr
 }
