@@ -31,36 +31,42 @@ func newHttpResponse(req *HttpRequest, res *http.Response) *HttpResponse {
 type HttpResponse struct {
 	Request    *HttpRequest
 	Response   *http.Response
-	Body       []byte
+	body       []byte
 	StatusCode int64
 	Headers    map[string]string
 }
 
 func (hr *HttpResponse) readBody() {
-	if hr.Body != nil {
+	if hr.body != nil {
 		return
 	}
 
 	bytes, _ := io.ReadAll(hr.Response.Body)
-	hr.Body = bytes
+	hr.body = bytes
+}
+
+func (hr *HttpResponse) Bytes() []byte {
+	hr.readBody()
+
+	return hr.body
 }
 
 func (hr *HttpResponse) String() string {
 	hr.readBody()
 
-	return string(hr.Body)
+	return string(hr.body)
 }
 
 func (hr *HttpResponse) Json(sliceOrMapOrStruct *any) error {
 	hr.readBody()
 
-	return json.Unmarshal(hr.Body, sliceOrMapOrStruct)
+	return json.Unmarshal(hr.body, sliceOrMapOrStruct)
 }
 
 func (hr *HttpResponse) Xml(sliceOrMapOrStruct *any) error {
 	hr.readBody()
 
-	return xml.Unmarshal(hr.Body, sliceOrMapOrStruct)
+	return xml.Unmarshal(hr.body, sliceOrMapOrStruct)
 }
 
 func (hr *HttpResponse) Success() bool {
