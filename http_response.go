@@ -39,7 +39,10 @@ func (hr *HttpResponse) readBody() {
 	}
 
 	bytes := []byte{}
-	_, _ = hr.Response.Body.Read(bytes)
+	_, err := hr.Response.Body.Read(bytes)
+	if err != nil {
+		panic(err)
+	}
 	hr.Body = bytes
 }
 
