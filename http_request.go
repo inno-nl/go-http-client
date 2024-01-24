@@ -230,7 +230,7 @@ func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
 		return
 	}
 
-	response = newHttpResponse(req, res)
+	response = newHttpResponse(hr, res)
 	return
 }
 

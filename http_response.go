@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func newHttpResponse(req *http.Request, res *http.Response) *HttpResponse {
+func newHttpResponse(req *HttpRequest, res *http.Response) *HttpResponse {
 	hr := &HttpResponse{}
 
 	hr.StatusCode = int64(res.StatusCode)
@@ -29,7 +29,7 @@ func newHttpResponse(req *http.Request, res *http.Response) *HttpResponse {
 }
 
 type HttpResponse struct {
-	Request    *http.Request
+	Request    *HttpRequest
 	Response   *http.Response
 	Body       []byte
 	StatusCode int64
@@ -65,4 +65,8 @@ func (hr *HttpResponse) Xml(sliceOrMapOrStruct *any) error {
 
 func (hr *HttpResponse) Success() bool {
 	return hr.StatusCode >= 200 && hr.StatusCode < 300
+}
+
+func (hr *HttpResponse) Retry() (*HttpResponse, error) {
+	return hr.Request.Execute()
 }
