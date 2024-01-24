@@ -3,7 +3,6 @@ package httpclient
 import (
 	"encoding/json"
 	"encoding/xml"
-	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -37,14 +36,10 @@ type HttpResponse struct {
 
 func (hr *HttpResponse) readBody() {
 	if hr.Body != nil {
-		panic(errors.New("HERE"))
 		return
 	}
 
-	bytes, err := io.ReadAll(hr.Response.Body)
-	if err != nil {
-		panic(err)
-	}
+	bytes, _ := io.ReadAll(hr.Response.Body)
 	hr.Body = bytes
 }
 
