@@ -173,6 +173,8 @@ func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
 		Timeout: time.Duration(hr.timeout) * time.Second,
 	}
 
+	fmt.Println("METHOD")
+	fmt.Println(hr.method)
 	req, err := http.NewRequest(
 		hr.method,
 		hr.generateUrl(),
