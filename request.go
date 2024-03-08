@@ -105,7 +105,7 @@ func (r *Request) logError(req *http.Request, attempt int, err error) {
 		headers = append(headers, fmt.Sprintf(" - %s : %s", k, strings.Join(v, ", ")))
 	}
 
-	body := ""
+	body := "<not set>"
 	if r.body != nil {
 		body = *r.body
 	}
@@ -125,7 +125,7 @@ func (r *Request) logError(req *http.Request, attempt int, err error) {
 	fmt.Printf("Proxy       : %s\n", proxy)
 	fmt.Printf("Url         : %s\n", url)
 	fmt.Printf("Method      : %s\n", method)
-	fmt.Println("Headers    :")
+	fmt.Println("Headers     :")
 	for _, h := range headers {
 		fmt.Println(h)
 	}
