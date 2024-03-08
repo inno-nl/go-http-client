@@ -113,7 +113,7 @@ func (r *Request) logError(req *http.Request, attempt int, err error) {
 	timeout := *r.timeout
 	retryCount := *r.retryCount
 
-	stringsToCount := []string{proxy, url, method}
+	stringsToCount := []string{err.Error(), proxy, url, method}
 	stringsToCount = append(stringsToCount, headers...)
 	longestString := getLengthOfLongestString(stringsToCount)
 
