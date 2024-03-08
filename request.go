@@ -116,21 +116,21 @@ func (r *Request) logError(req *http.Request, attempt int, err error) {
 	stringsToCount := []string{err.Error(), proxy, url, method}
 	stringsToCount = append(stringsToCount, headers...)
 	longestString := getLengthOfLongestString(stringsToCount)
-	preCalculationCharactersLength := 12
+	preCalculationCharactersLength := 14
 
 	fmt.Println(strings.Repeat("-", longestString+preCalculationCharactersLength))
 	fmt.Printf("Attempt %d/%d failed\n", attempt, retryCount+1)
-	fmt.Printf("Error:     : %s\n", err.Error())
+	fmt.Printf("Error:      : %s\n", err.Error())
 	fmt.Println("\nRequest:")
-	fmt.Printf("Proxy      : %s\n", proxy)
-	fmt.Printf("Url        : %s\n", url)
-	fmt.Printf("Method     : %s\n", method)
-	fmt.Println("Headers   :")
+	fmt.Printf("Proxy       : %s\n", proxy)
+	fmt.Printf("Url         : %s\n", url)
+	fmt.Printf("Method      : %s\n", method)
+	fmt.Println("Headers    :")
 	for _, h := range headers {
 		fmt.Println(h)
 	}
-	fmt.Printf("Body       : %s\n", body)
-	fmt.Printf("Timeout    : %d\n", timeout)
-	fmt.Printf("Retrycount : %d\n", retryCount)
+	fmt.Printf("Body        : %s\n", body)
+	fmt.Printf("Timeout     : %d\n", timeout)
+	fmt.Printf("Retry count : %d\n", retryCount)
 	fmt.Println(strings.Repeat("-", longestString+preCalculationCharactersLength))
 }
