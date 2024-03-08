@@ -14,6 +14,7 @@ Call the function `httpclient.New()` to spawn a new Httpclient.
 
 You can set defaults for requests there. The following methods are available:
 ```
+client.ProxyUrl(string)
 client.BaseUrl(string)
 client.Path(string)
 client.FullUrl(string)
@@ -33,7 +34,7 @@ client.BearerAuth(token)
 
 When you want to spawn a new request, call `client.NewRequest()` which will return a pointer to a `httpclient.Request` struct.
 
-You can use the same methods that the client has such as `Parameter` or `Header` to modify the request.
+You can use the same methods that the client has, such as `Parameter` or `Header`, to modify the request.
 
 When you're ready to send the request, call `request.Send()`
 
