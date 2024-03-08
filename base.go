@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-type httpBase struct {
+type base struct {
 	proxyUrl    *string
 	baseUrl     *string
 	path        *string
@@ -23,24 +23,24 @@ type httpBase struct {
 	retryCount  *int
 }
 
-func (hb *httpBase) ProxyUrl(proxyUrl string) {
-	hb.proxyUrl = &proxyUrl
+func (b *base) ProxyUrl(proxyUrl string) {
+	b.proxyUrl = &proxyUrl
 }
 
-func (hb *httpBase) BaseUrl(requestUrl string) {
+func (b *base) BaseUrl(requestUrl string) {
 	baseUrl := strings.TrimRight(requestUrl, "/")
 
-	hb.baseUrl = &baseUrl
+	b.baseUrl = &baseUrl
 }
 
-func (hb *httpBase) Path(requestUrl string) {
+func (b *base) Path(requestUrl string) {
 	path := strings.TrimLeft(requestUrl, "/")
 
-	hb.path = &path
+	b.path = &path
 }
 
-func (hb *httpBase) FullUrl(requestUrl string) {
-	parsedUrl, _ := url.Parse(hb.extractParametersFromUrl(requestUrl))
+func (b *base) FullUrl(requestUrl string) {
+	parsedUrl, _ := url.Parse(b.extractParametersFromUrl(requestUrl))
 
 	baseUrl := fmt.Sprintf(
 		"%s://%s",
@@ -49,36 +49,36 @@ func (hb *httpBase) FullUrl(requestUrl string) {
 	)
 	path := parsedUrl.Path
 
-	hb.baseUrl = &baseUrl
-	hb.path = &path
+	b.baseUrl = &baseUrl
+	b.path = &path
 }
 
-func (hb *httpBase) Method(method string) {
-	hb.method = &method
+func (b *base) Method(method string) {
+	b.method = &method
 }
 
-func (hb *httpBase) Parameter(key string, value string) {
-	hb.initParameters()
+func (b *base) Parameter(key string, value string) {
+	b.initParameters()
 
-	_, exists := hb.parameters[key]
+	_, exists := b.parameters[key]
 	if !exists {
-		hb.parameters[key] = make([]string, 0)
+		b.parameters[key] = make([]string, 0)
 	}
 
-	hb.parameters[key] = append(
-		hb.parameters[key],
+	b.parameters[key] = append(
+		b.parameters[key],
 		value,
 	)
 }
 
-func (hb *httpBase) Parameters(parameters map[string]any) {
-	hb.initParameters()
+func (b *base) Parameters(parameters map[string]any) {
+	b.initParameters()
 
 	for k, v := range parameters {
 		vType := fmt.Sprint(reflect.TypeOf(v).Kind())
 
 		if vType == "string" {
-			hb.Parameter(k, v.(string))
+			b.Parameter(k, v.(string))
 			continue
 		}
 
@@ -86,98 +86,98 @@ func (hb *httpBase) Parameters(parameters map[string]any) {
 			slice := v.([]string)
 
 			for _, sv := range slice {
-				hb.Parameter(k, sv)
+				b.Parameter(k, sv)
 			}
 		}
 	}
 }
 
-func (hb *httpBase) Header(key string, value string) {
-	hb.initHeaders()
+func (b *base) Header(key string, value string) {
+	b.initHeaders()
 
-	hb.headers[key] = value
+	b.headers[key] = value
 }
 
-func (hb *httpBase) Headers(headers map[string]string) {
-	hb.initHeaders()
+func (b *base) Headers(headers map[string]string) {
+	b.initHeaders()
 
 	for k, v := range headers {
-		hb.Header(k, v)
+		b.Header(k, v)
 	}
 }
 
-func (hb *httpBase) ContentType(contentType string) {
-	hb.contentType = &contentType
+func (b *base) ContentType(contentType string) {
+	b.contentType = &contentType
 }
 
-func (hb *httpBase) Body(body string) {
-	hb.body = &body
+func (b *base) Body(body string) {
+	b.body = &body
 
-	if hb.contentType == nil {
-		hb.ContentType("text/plain")
+	if b.contentType == nil {
+		b.ContentType("text/plain")
 	}
 
-	if hb.method == nil {
+	if b.method == nil {
 		method := POST
-		hb.method = &method
+		b.method = &method
 	}
 }
 
-func (hb *httpBase) Json(body any) {
+func (b *base) Json(body any) {
 	bytes, _ := json.Marshal(body)
 	bytesString := string(bytes)
-	hb.body = &bytesString
+	b.body = &bytesString
 
-	if hb.contentType == nil {
-		hb.ContentType("application/json")
+	if b.contentType == nil {
+		b.ContentType("application/json")
 	}
 
-	if hb.method == nil {
+	if b.method == nil {
 		method := POST
-		hb.method = &method
+		b.method = &method
 	}
 }
 
-func (hb *httpBase) Timeout(timeout int) {
-	hb.timeout = &timeout
+func (b *base) Timeout(timeout int) {
+	b.timeout = &timeout
 }
 
-func (hb *httpBase) RetryCount(retryCount int) {
-	hb.retryCount = &retryCount
+func (b *base) RetryCount(retryCount int) {
+	b.retryCount = &retryCount
 }
 
-func (hb *httpBase) BasicAuth(user string, pass string) {
-	hb.initHeaders()
+func (b *base) BasicAuth(user string, pass string) {
+	b.initHeaders()
 
-	hb.headers[AUTHORIZATION_HEADER] = fmt.Sprintf(
+	b.headers[AUTHORIZATION_HEADER] = fmt.Sprintf(
 		"Basic %s",
 		base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", user, pass))),
 	)
 }
 
-func (hb *httpBase) BearerAuth(token string) {
-	hb.initHeaders()
+func (b *base) BearerAuth(token string) {
+	b.initHeaders()
 
-	hb.headers[AUTHORIZATION_HEADER] = fmt.Sprintf(
+	b.headers[AUTHORIZATION_HEADER] = fmt.Sprintf(
 		"Bearer %s",
 		token,
 	)
 }
 
-func (hb *httpBase) generateUrl() string {
+func (b *base) generateUrl() string {
 	fullUrl := fmt.Sprintf(
 		"%s/%s",
-		strings.TrimRight(*hb.baseUrl, "/"),
-		strings.TrimLeft(*hb.path, "/"),
+		strings.TrimRight(*b.baseUrl, "/"),
+		strings.TrimLeft(*b.path, "/"),
 	)
 
-	if len(hb.parameters) == 0 {
+	if len(b.parameters) == 0 {
 		return fullUrl
 	}
 
 	parameters := make([]string, 0)
 
-	for key, values := range hb.parameters {
+	for key, values := range b.parameters {
 		for _, v := range values {
 			parameters = append(parameters, fmt.Sprintf(
 				"%s=%s",
@@ -194,19 +194,19 @@ func (hb *httpBase) generateUrl() string {
 	)
 }
 
-func (hb *httpBase) parseBody() io.Reader {
-	if hb.method != nil && *hb.method == GET {
+func (b *base) parseBody() io.Reader {
+	if b.method != nil && *b.method == GET {
 		return nil
 	}
 
-	if hb.body != nil {
-		return strings.NewReader(*hb.body)
+	if b.body != nil {
+		return strings.NewReader(*b.body)
 	}
 
 	return nil
 }
 
-func (hb *httpBase) extractParametersFromUrl(requestUrl string) string {
+func (b *base) extractParametersFromUrl(requestUrl string) string {
 	if !strings.Contains("?", requestUrl) {
 		return strings.TrimRight(requestUrl, "/")
 	}
@@ -219,7 +219,7 @@ func (hb *httpBase) extractParametersFromUrl(requestUrl string) string {
 	for _, q := range queryStringSplit {
 		if !strings.Contains(q, "=") {
 			key, _ := url.QueryUnescape(q)
-			hb.Parameter(key, "")
+			b.Parameter(key, "")
 			continue
 		}
 
@@ -227,20 +227,20 @@ func (hb *httpBase) extractParametersFromUrl(requestUrl string) string {
 		key, _ := url.QueryUnescape(queryParamSplit[0])
 		value, _ := url.QueryUnescape(queryParamSplit[1])
 
-		hb.Parameter(key, value)
+		b.Parameter(key, value)
 	}
 
 	return strings.TrimRight(urlString, "/")
 }
 
-func (hb *httpBase) initParameters() {
-	if hb.parameters == nil {
-		hb.parameters = make(map[string][]string)
+func (b *base) initParameters() {
+	if b.parameters == nil {
+		b.parameters = make(map[string][]string)
 	}
 }
 
-func (hb *httpBase) initHeaders() {
-	if hb.headers == nil {
-		hb.headers = make(map[string]string)
+func (b *base) initHeaders() {
+	if b.headers == nil {
+		b.headers = make(map[string]string)
 	}
 }

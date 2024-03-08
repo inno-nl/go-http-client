@@ -9,23 +9,23 @@ import (
 )
 
 func newResponse(req *Request, res *http.Response) *Response {
-	hr := &Response{}
+	r := &Response{}
 
-	hr.StatusCode = res.StatusCode
+	r.StatusCode = res.StatusCode
 
-	hr.Headers = make(map[string]string)
+	r.Headers = make(map[string]string)
 	for k, v := range res.Header {
 		if len(v) == 0 {
 			continue
 		}
 
-		hr.Headers[k] = strings.Join(v, ", ")
+		r.Headers[k] = strings.Join(v, ", ")
 	}
 
-	hr.Request = req
-	hr.Response = res
+	r.Request = req
+	r.Response = res
 
-	return hr
+	return r
 }
 
 type Response struct {
@@ -36,43 +36,43 @@ type Response struct {
 	Headers    map[string]string
 }
 
-func (hr *Response) readBody() {
-	if hr.body != nil {
+func (r *Response) readBody() {
+	if r.body != nil {
 		return
 	}
 
-	bytes, _ := io.ReadAll(hr.Response.Body)
-	hr.body = bytes
+	bytes, _ := io.ReadAll(r.Response.Body)
+	r.body = bytes
 }
 
-func (hr *Response) Bytes() []byte {
-	hr.readBody()
+func (r *Response) Bytes() []byte {
+	r.readBody()
 
-	return hr.body
+	return r.body
 }
 
-func (hr *Response) String() string {
-	hr.readBody()
+func (r *Response) String() string {
+	r.readBody()
 
-	return string(hr.body)
+	return string(r.body)
 }
 
-func (hr *Response) Json(serializable any) error {
-	hr.readBody()
+func (r *Response) Json(serializable any) error {
+	r.readBody()
 
-	return json.Unmarshal(hr.body, serializable)
+	return json.Unmarshal(r.body, serializable)
 }
 
-func (hr *Response) Xml(serializable any) error {
-	hr.readBody()
+func (r *Response) Xml(serializable any) error {
+	r.readBody()
 
-	return xml.Unmarshal(hr.body, serializable)
+	return xml.Unmarshal(r.body, serializable)
 }
 
-func (hr *Response) Success() bool {
-	return hr.StatusCode >= 200 && hr.StatusCode < 300
+func (r *Response) Success() bool {
+	return r.StatusCode >= 200 && r.StatusCode < 300
 }
 
-func (hr *Response) Retry() (*Response, error) {
-	return hr.Request.Send()
+func (r *Response) Retry() (*Response, error) {
+	return r.Request.Send()
 }

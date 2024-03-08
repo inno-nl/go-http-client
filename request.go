@@ -1,29 +1,32 @@
 package httpclient
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
 type Request struct {
-	httpBase
+	base
 }
 
-func (hr *Request) Send() (response *Response, err error) {
+func (r *Request) Send() (response *Response, err error) {
 	// Timeout
 	timeout := DEFAULT_TIMEOUT
-	if hr.timeout != nil {
-		timeout = *hr.timeout
+	if r.timeout != nil {
+		timeout = *r.timeout
 	}
 
+	// Client
 	hc := &http.Client{
 		Timeout: time.Duration(timeout) * time.Second,
 	}
 
 	// Proxy url
-	if hr.proxyUrl != nil {
-		proxyUrl, err := url.Parse(*hr.proxyUrl)
+	if r.proxyUrl != nil {
+		proxyUrl, err := url.Parse(*r.proxyUrl)
 		if err != nil {
 			return nil, err
 		}
@@ -32,15 +35,14 @@ func (hr *Request) Send() (response *Response, err error) {
 
 	// Method
 	method := GET
-	if hr.method != nil {
-		method = *hr.method
+	if r.method != nil {
+		method = *r.method
 	}
 
-	req, err := http.NewRequest(
-		method,
-		hr.generateUrl(),
-		hr.parseBody(),
-	)
+	// Request
+	url := r.generateUrl()
+	body := r.parseBody()
+	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return
 	}
@@ -52,21 +54,21 @@ func (hr *Request) Send() (response *Response, err error) {
 	)
 
 	// Override content type
-	if hr.contentType != nil {
-		req.Header.Set("Content-type", *hr.contentType)
+	if r.contentType != nil {
+		req.Header.Set("Content-type", *r.contentType)
 	}
 
 	// Headers
-	if hr.headers != nil {
-		for k, v := range hr.headers {
+	if r.headers != nil {
+		for k, v := range r.headers {
 			req.Header.Set(k, v)
 		}
 	}
 
 	// Retrycount
 	retryCount := 0
-	if hr.retryCount != nil {
-		retryCount = *hr.retryCount
+	if r.retryCount != nil {
+		retryCount = *r.retryCount
 	}
 
 	// Tries the request atleast once
@@ -76,6 +78,8 @@ func (hr *Request) Send() (response *Response, err error) {
 		if err == nil {
 			break
 		}
+
+		r.logError(req, i+1, err)
 	}
 
 	// If no response was given the request has failed
@@ -83,6 +87,45 @@ func (hr *Request) Send() (response *Response, err error) {
 		return
 	}
 
-	response = newResponse(hr, res)
+	response = newResponse(r, res)
 	return
+}
+
+func (r *Request) logError(req *http.Request, attempt int, err error) {
+	proxy := "<not set>"
+	if r.proxyUrl != nil {
+		proxy = *r.proxyUrl
+	}
+
+	url := r.generateUrl()
+	method := *r.method
+
+	headers := make([]string, 0)
+	for k, v := range req.Header {
+		headers = append(headers, fmt.Sprintf(" - %s : %s", k, strings.Join(v, ", ")))
+	}
+
+	body := *r.body
+	timeout := *r.timeout
+	retryCount := *r.retryCount
+
+	stringsToCount := []string{proxy, url, method}
+	stringsToCount = append(stringsToCount, headers...)
+	longestString := getLengthOfLongestString(stringsToCount)
+
+	fmt.Println(strings.Repeat("-", longestString))
+	fmt.Printf("Attempt %d/%d failed", attempt, retryCount+1)
+	fmt.Printf("Error:		: %s\n", err.Error())
+	fmt.Println("")
+	fmt.Printf("Proxy		: %s\n", proxy)
+	fmt.Printf("Url			: %s\n", url)
+	fmt.Printf("Method		: %s\n", method)
+	fmt.Println("Headers	:")
+	for _, h := range headers {
+		fmt.Println(h)
+	}
+	fmt.Printf("Body		: %s\n", body)
+	fmt.Printf("Timeout		: %d\n", timeout)
+	fmt.Printf("Retry count	: %d\n", retryCount)
+	fmt.Println(strings.Repeat("-", longestString))
 }
