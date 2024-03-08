@@ -11,6 +11,7 @@ import (
 )
 
 type base struct {
+	logErrors   bool
 	proxyUrl    *string
 	baseUrl     *string
 	path        *string
@@ -21,6 +22,10 @@ type base struct {
 	body        *string
 	timeout     *int
 	retryCount  *int
+}
+
+func (b *base) LogErrors(shouldLog bool) {
+	b.logErrors = shouldLog
 }
 
 func (b *base) ProxyUrl(proxyUrl string) {

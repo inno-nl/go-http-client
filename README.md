@@ -59,3 +59,11 @@ unMarshalInto := make([]string, 0)
 
 err := resp.Json(&unMarshalInto)
 ```
+
+## 4 Error logging
+
+The http library comes with a way to log to STDOUT. You can enable it by calling
+```
+client.LogErrors(true)
+request.LogErrors(true)
+```
