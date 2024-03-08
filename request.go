@@ -105,7 +105,11 @@ func (r *Request) logError(req *http.Request, attempt int, err error) {
 		headers = append(headers, fmt.Sprintf(" - %s : %s", k, strings.Join(v, ", ")))
 	}
 
-	body := *r.body
+	body := ""
+	if r.body != nil {
+		body = *r.body
+	}
+
 	timeout := *r.timeout
 	retryCount := *r.retryCount
 
