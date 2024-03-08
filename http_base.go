@@ -26,19 +26,12 @@ func (hb *httpBase) BaseUrl(requestUrl string) {
 	baseUrl := strings.TrimRight(requestUrl, "/")
 
 	hb.baseUrl = &baseUrl
-
 }
 
 func (hb *httpBase) Path(requestUrl string) {
 	path := strings.TrimLeft(requestUrl, "/")
 
 	hb.path = &path
-
-}
-
-func (hb *httpBase) Method(method string) {
-	hb.method = &method
-
 }
 
 func (hb *httpBase) FullUrl(requestUrl string) {
@@ -53,7 +46,10 @@ func (hb *httpBase) FullUrl(requestUrl string) {
 
 	hb.baseUrl = &baseUrl
 	hb.path = &path
+}
 
+func (hb *httpBase) Method(method string) {
+	hb.method = &method
 }
 
 func (hb *httpBase) Parameter(key string, value string) {
@@ -93,7 +89,6 @@ func (hb *httpBase) Parameters(parameters map[string]any) {
 			}
 		}
 	}
-
 }
 
 func (hb *httpBase) Header(key string, value string) {
@@ -102,7 +97,6 @@ func (hb *httpBase) Header(key string, value string) {
 	}
 
 	hb.headers[key] = value
-
 }
 
 func (hb *httpBase) Headers(headers map[string]string) {
@@ -113,12 +107,10 @@ func (hb *httpBase) Headers(headers map[string]string) {
 	for k, v := range headers {
 		hb.Header(k, v)
 	}
-
 }
 
 func (hb *httpBase) ContentType(contentType string) {
 	hb.contentType = &contentType
-
 }
 
 func (hb *httpBase) Body(body string) {
@@ -132,7 +124,6 @@ func (hb *httpBase) Body(body string) {
 		method := POST
 		hb.method = &method
 	}
-
 }
 
 func (hb *httpBase) Json(body any) {
@@ -152,12 +143,10 @@ func (hb *httpBase) Json(body any) {
 
 func (hb *httpBase) Timeout(timeout int) {
 	hb.timeout = &timeout
-
 }
 
 func (hb *httpBase) RetryCount(retryCount int) {
 	hb.retryCount = &retryCount
-
 }
 
 func (hb *httpBase) BasicAuth(user string, pass string) {
@@ -165,7 +154,6 @@ func (hb *httpBase) BasicAuth(user string, pass string) {
 		"Basic %s",
 		base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", user, pass))),
 	)
-
 }
 
 func (hb *httpBase) BearerAuth(token string) {
@@ -173,7 +161,6 @@ func (hb *httpBase) BearerAuth(token string) {
 		"Bearer %s",
 		token,
 	)
-
 }
 
 func (hb *httpBase) generateUrl() string {
