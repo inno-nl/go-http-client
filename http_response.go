@@ -74,5 +74,5 @@ func (hr *HttpResponse) Success() bool {
 }
 
 func (hr *HttpResponse) Retry() (*HttpResponse, error) {
-	return hr.Request.Execute()
+	return hr.Request.Send()
 }

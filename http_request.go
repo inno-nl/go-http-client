@@ -9,7 +9,7 @@ type HttpRequest struct {
 	httpBase
 }
 
-func (hr *HttpRequest) Execute() (response *HttpResponse, err error) {
+func (hr *HttpRequest) Send() (response *HttpResponse, err error) {
 	// Timeout
 	timeout := DEFAULT_TIMEOUT
 	if hr.timeout != nil {

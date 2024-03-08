@@ -11,7 +11,6 @@ func (hc *HttpClient) NewRequest() *HttpRequest {
 	r.path = hc.path
 	r.method = hc.method
 	r.parameters = hc.parameters
-	r.parameters = hc.parameters
 	r.headers = hc.headers
 	r.contentType = hc.contentType
 	r.body = hc.body
