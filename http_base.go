@@ -207,7 +207,7 @@ func (hb *httpBase) generateUrl() string {
 }
 
 func (hb *httpBase) parseBody() io.Reader {
-	if *hb.method == GET {
+	if hb.method != nil && *hb.method == GET {
 		return nil
 	}
 
