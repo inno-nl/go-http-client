@@ -57,13 +57,13 @@ func (hr *Response) String() string {
 	return string(hr.body)
 }
 
-func (hr *Response) Json(serializable *any) error {
+func (hr *Response) Json(serializable any) error {
 	hr.readBody()
 
 	return json.Unmarshal(hr.body, serializable)
 }
 
-func (hr *Response) Xml(serializable *any) error {
+func (hr *Response) Xml(serializable any) error {
 	hr.readBody()
 
 	return xml.Unmarshal(hr.body, serializable)
