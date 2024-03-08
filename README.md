@@ -31,7 +31,7 @@ client.BaseAuth(string, string)
 client.BearerAuth(token)
 ```
 
-When you want to spawn a new request, call `client.NewRequest()` which will return a pointer to a `httpclient.HttpRequest` struct.
+When you want to spawn a new request, call `client.NewRequest()` which will return a pointer to a `httpclient.Request` struct.
 
 You can use the same methods that the client has such as `Parameter` or `Header` to modify the request.
 

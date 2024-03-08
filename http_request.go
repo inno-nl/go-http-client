@@ -5,11 +5,11 @@ import (
 	"time"
 )
 
-type HttpRequest struct {
+type Request struct {
 	httpBase
 }
 
-func (hr *HttpRequest) Send() (response *HttpResponse, err error) {
+func (hr *Request) Send() (response *Response, err error) {
 	// Timeout
 	timeout := DEFAULT_TIMEOUT
 	if hr.timeout != nil {
@@ -73,6 +73,6 @@ func (hr *HttpRequest) Send() (response *HttpResponse, err error) {
 		return
 	}
 
-	response = newHttpResponse(hr, res)
+	response = newResponse(hr, res)
 	return
 }

@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-func newHttpResponse(req *HttpRequest, res *http.Response) *HttpResponse {
-	hr := &HttpResponse{}
+func newResponse(req *Request, res *http.Response) *Response {
+	hr := &Response{}
 
 	hr.StatusCode = res.StatusCode
 
@@ -28,15 +28,15 @@ func newHttpResponse(req *HttpRequest, res *http.Response) *HttpResponse {
 	return hr
 }
 
-type HttpResponse struct {
-	Request    *HttpRequest
+type Response struct {
+	Request    *Request
 	Response   *http.Response
 	body       []byte
 	StatusCode int
 	Headers    map[string]string
 }
 
-func (hr *HttpResponse) readBody() {
+func (hr *Response) readBody() {
 	if hr.body != nil {
 		return
 	}
@@ -45,34 +45,34 @@ func (hr *HttpResponse) readBody() {
 	hr.body = bytes
 }
 
-func (hr *HttpResponse) Bytes() []byte {
+func (hr *Response) Bytes() []byte {
 	hr.readBody()
 
 	return hr.body
 }
 
-func (hr *HttpResponse) String() string {
+func (hr *Response) String() string {
 	hr.readBody()
 
 	return string(hr.body)
 }
 
-func (hr *HttpResponse) Json(serializable *any) error {
+func (hr *Response) Json(serializable *any) error {
 	hr.readBody()
 
 	return json.Unmarshal(hr.body, serializable)
 }
 
-func (hr *HttpResponse) Xml(serializable *any) error {
+func (hr *Response) Xml(serializable *any) error {
 	hr.readBody()
 
 	return xml.Unmarshal(hr.body, serializable)
 }
 
-func (hr *HttpResponse) Success() bool {
+func (hr *Response) Success() bool {
 	return hr.StatusCode >= 200 && hr.StatusCode < 300
 }
 
-func (hr *HttpResponse) Retry() (*HttpResponse, error) {
+func (hr *Response) Retry() (*Response, error) {
 	return hr.Request.Send()
 }

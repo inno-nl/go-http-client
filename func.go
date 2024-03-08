@@ -1,5 +1,5 @@
 package httpclient
 
-func New() *HttpClient {
-	return &HttpClient{}
+func New() *Client {
+	return &Client{}
 }

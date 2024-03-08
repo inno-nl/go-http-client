@@ -1,11 +1,11 @@
 package httpclient
 
-type HttpClient struct {
+type Client struct {
 	httpBase
 }
 
-func (hc *HttpClient) NewRequest() *HttpRequest {
-	r := &HttpRequest{}
+func (hc *Client) NewRequest() *Request {
+	r := &Request{}
 
 	r.baseUrl = hc.baseUrl
 	r.path = hc.path
