@@ -11,6 +11,7 @@ import (
 )
 
 type httpBase struct {
+	proxyUrl    *string
 	baseUrl     *string
 	path        *string
 	method      *string
@@ -20,6 +21,10 @@ type httpBase struct {
 	body        *string
 	timeout     *int
 	retryCount  *int
+}
+
+func (hb *httpBase) ProxyUrl(proxyUrl string) {
+	hb.proxyUrl = &proxyUrl
 }
 
 func (hb *httpBase) BaseUrl(requestUrl string) {

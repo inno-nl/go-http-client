@@ -2,6 +2,7 @@ package httpclient
 
 import (
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -18,6 +19,15 @@ func (hr *Request) Send() (response *Response, err error) {
 
 	hc := &http.Client{
 		Timeout: time.Duration(timeout) * time.Second,
+	}
+
+	// Proxy url
+	if hr.proxyUrl != nil {
+		proxyUrl, err := url.Parse(*hr.proxyUrl)
+		if err != nil {
+			return nil, err
+		}
+		hc.Transport = &http.Transport{Proxy: http.ProxyURL(proxyUrl)}
 	}
 
 	// Method
