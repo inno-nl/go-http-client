@@ -58,9 +58,7 @@ func (hb *httpBase) Method(method string) {
 }
 
 func (hb *httpBase) Parameter(key string, value string) {
-	if hb.parameters == nil {
-		hb.parameters = make(map[string][]string)
-	}
+	hb.initParameters()
 
 	_, exists := hb.parameters[key]
 	if !exists {
@@ -74,9 +72,7 @@ func (hb *httpBase) Parameter(key string, value string) {
 }
 
 func (hb *httpBase) Parameters(parameters map[string]any) {
-	if hb.parameters == nil {
-		hb.parameters = make(map[string][]string)
-	}
+	hb.initParameters()
 
 	for k, v := range parameters {
 		vType := fmt.Sprint(reflect.TypeOf(v).Kind())
@@ -97,17 +93,13 @@ func (hb *httpBase) Parameters(parameters map[string]any) {
 }
 
 func (hb *httpBase) Header(key string, value string) {
-	if hb.headers == nil {
-		hb.headers = make(map[string]string)
-	}
+	hb.initHeaders()
 
 	hb.headers[key] = value
 }
 
 func (hb *httpBase) Headers(headers map[string]string) {
-	if hb.headers == nil {
-		hb.headers = make(map[string]string)
-	}
+	hb.initHeaders()
 
 	for k, v := range headers {
 		hb.Header(k, v)
@@ -155,6 +147,8 @@ func (hb *httpBase) RetryCount(retryCount int) {
 }
 
 func (hb *httpBase) BasicAuth(user string, pass string) {
+	hb.initHeaders()
+
 	hb.headers[AUTHORIZATION_HEADER] = fmt.Sprintf(
 		"Basic %s",
 		base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", user, pass))),
@@ -162,6 +156,8 @@ func (hb *httpBase) BasicAuth(user string, pass string) {
 }
 
 func (hb *httpBase) BearerAuth(token string) {
+	hb.initHeaders()
+
 	hb.headers[AUTHORIZATION_HEADER] = fmt.Sprintf(
 		"Bearer %s",
 		token,
@@ -235,4 +231,16 @@ func (hb *httpBase) extractParametersFromUrl(requestUrl string) string {
 	}
 
 	return strings.TrimRight(urlString, "/")
+}
+
+func (hb *httpBase) initParameters() {
+	if hb.parameters == nil {
+		hb.parameters = make(map[string][]string)
+	}
+}
+
+func (hb *httpBase) initHeaders() {
+	if hb.headers == nil {
+		hb.headers = make(map[string]string)
+	}
 }
