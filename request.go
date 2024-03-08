@@ -79,7 +79,9 @@ func (r *Request) Send() (response *Response, err error) {
 			break
 		}
 
-		r.logError(req, i+1, err)
+		if r.logErrors {
+			r.logError(req, i+1, err)
+		}
 	}
 
 	// If no response was given the request has failed
