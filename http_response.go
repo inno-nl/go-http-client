@@ -11,7 +11,7 @@ import (
 func newHttpResponse(req *HttpRequest, res *http.Response) *HttpResponse {
 	hr := &HttpResponse{}
 
-	hr.StatusCode = int64(res.StatusCode)
+	hr.StatusCode = res.StatusCode
 
 	hr.Headers = make(map[string]string)
 	for k, v := range res.Header {
@@ -32,7 +32,7 @@ type HttpResponse struct {
 	Request    *HttpRequest
 	Response   *http.Response
 	body       []byte
-	StatusCode int64
+	StatusCode int
 	Headers    map[string]string
 }
 
@@ -57,16 +57,16 @@ func (hr *HttpResponse) String() string {
 	return string(hr.body)
 }
 
-func (hr *HttpResponse) Json(sliceOrMapOrStruct *any) error {
+func (hr *HttpResponse) Json(serializable *any) error {
 	hr.readBody()
 
-	return json.Unmarshal(hr.body, sliceOrMapOrStruct)
+	return json.Unmarshal(hr.body, serializable)
 }
 
-func (hr *HttpResponse) Xml(sliceOrMapOrStruct *any) error {
+func (hr *HttpResponse) Xml(serializable *any) error {
 	hr.readBody()
 
-	return xml.Unmarshal(hr.body, sliceOrMapOrStruct)
+	return xml.Unmarshal(hr.body, serializable)
 }
 
 func (hr *HttpResponse) Success() bool {

@@ -7,4 +7,5 @@ const (
 	PATCH                = "PATCH"
 	DELETE               = "DELETE"
 	AUTHORIZATION_HEADER = "Authorization"
+	DEFAULT_TIMEOUT      = 60
 )
