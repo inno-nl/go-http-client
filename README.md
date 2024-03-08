@@ -1,4 +1,4 @@
-# Golang HTTP Client
+# Inno Golang HTTP Client
 
 A simple http client made for easy communication with microservices or external API's.
 
