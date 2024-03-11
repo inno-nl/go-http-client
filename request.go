@@ -66,7 +66,7 @@ func (r *Request) Send() (response *Response, err error) {
 	}
 
 	// Retrycount
-	if r.retryCount != nil {
+	if r.retryCount == nil {
 		defaultRetryCount := 0
 		r.retryCount = &defaultRetryCount
 	}
