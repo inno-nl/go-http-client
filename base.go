@@ -11,21 +11,33 @@ import (
 )
 
 type base struct {
-	logErrors   bool
-	proxyUrl    *string
-	baseUrl     *string
-	path        *string
-	method      *string
-	parameters  map[string][]string
-	headers     map[string]string
-	contentType *string
-	body        *string
-	timeout     *int
-	retryCount  *int
+	proxyUrl           *string
+	baseUrl            *string
+	path               *string
+	method             *string
+	parameters         map[string][]string
+	headers            map[string]string
+	contentType        *string
+	body               *string
+	timeout            *int
+	retryCount         *int
+	exponentialBackoff int
+	logErrors          bool
+	errorLogFunc       ErrorLogFunc
 }
 
-func (b *base) LogErrors(shouldLog bool) {
-	b.logErrors = shouldLog
+type ErrorLogFunc func(HttpError)
+
+type HttpError struct {
+	Error      error
+	Attempt    int
+	ProxyUrl   string
+	Url        string
+	Method     string
+	Headers    []string
+	Body       string
+	Timeout    int
+	RetryCount int
 }
 
 func (b *base) ProxyUrl(proxyUrl string) {
@@ -149,6 +161,18 @@ func (b *base) Timeout(timeout int) {
 
 func (b *base) RetryCount(retryCount int) {
 	b.retryCount = &retryCount
+}
+
+func (b *base) ExponentialBackoff(baseSeconds int) {
+	b.exponentialBackoff = baseSeconds
+}
+
+func (b *base) LogErrors(shouldLog bool, errorLogFunc ErrorLogFunc) {
+	b.logErrors = shouldLog
+
+	if errorLogFunc != nil {
+		b.errorLogFunc = errorLogFunc
+	}
 }
 
 func (b *base) BasicAuth(user string, pass string) {

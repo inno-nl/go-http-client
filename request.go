@@ -14,14 +14,14 @@ type Request struct {
 
 func (r *Request) Send() (response *Response, err error) {
 	// Timeout
-	timeout := DEFAULT_TIMEOUT
-	if r.timeout != nil {
-		timeout = *r.timeout
+	if r.timeout == nil {
+		defaultTimeout := DEFAULT_TIMEOUT
+		r.timeout = &defaultTimeout
 	}
 
 	// Client
 	hc := &http.Client{
-		Timeout: time.Duration(timeout) * time.Second,
+		Timeout: time.Duration(*r.timeout) * time.Second,
 	}
 
 	// Proxy url
@@ -34,15 +34,15 @@ func (r *Request) Send() (response *Response, err error) {
 	}
 
 	// Method
-	method := GET
-	if r.method != nil {
-		method = *r.method
+	if r.method == nil {
+		defaultMethod := GET
+		r.method = &defaultMethod
 	}
 
 	// Request
 	url := r.generateUrl()
 	body := r.parseBody()
-	req, err := http.NewRequest(method, url, body)
+	req, err := http.NewRequest(*r.method, url, body)
 	if err != nil {
 		return
 	}
@@ -66,12 +66,13 @@ func (r *Request) Send() (response *Response, err error) {
 	}
 
 	// Retrycount
-	retryCount := 0
 	if r.retryCount != nil {
-		retryCount = *r.retryCount
+		defaultRetryCount := 0
+		r.retryCount = &defaultRetryCount
 	}
 
 	// Tries the request atleast once
+	retryCount := *r.retryCount
 	var res *http.Response
 	for i := 0; i < retryCount+1; i++ {
 		res, err = hc.Do(req)
@@ -79,8 +80,10 @@ func (r *Request) Send() (response *Response, err error) {
 			break
 		}
 
-		if r.logErrors {
-			r.logError(req, i+1, err)
+		r.logError(req, i+1, err)
+
+		if r.exponentialBackoff > 0 {
+			time.Sleep(time.Duration(r.exponentialBackoff*(i+1)) * time.Second)
 		}
 	}
 
@@ -94,45 +97,36 @@ func (r *Request) Send() (response *Response, err error) {
 }
 
 func (r *Request) logError(req *http.Request, attempt int, err error) {
-	proxy := "<not set>"
+	if !r.logErrors || r.errorLogFunc == nil {
+		return
+	}
+
+	proxyUrl := ""
 	if r.proxyUrl != nil {
-		proxy = *r.proxyUrl
+		proxyUrl = *r.proxyUrl
 	}
 
 	url := r.generateUrl()
-	method := *r.method
 
 	headers := make([]string, 0)
 	for k, v := range req.Header {
-		headers = append(headers, fmt.Sprintf(" - %s : %s", k, strings.Join(v, ", ")))
+		headers = append(headers, fmt.Sprintf("%s: %s", k, strings.Join(v, ", ")))
 	}
 
-	body := "<not set>"
+	body := ""
 	if r.body != nil {
 		body = *r.body
 	}
 
-	timeout := *r.timeout
-	retryCount := *r.retryCount
-
-	stringsToCount := []string{err.Error(), proxy, url, method}
-	stringsToCount = append(stringsToCount, headers...)
-	longestString := getLengthOfLongestString(stringsToCount)
-	preCalculationCharactersLength := 14
-
-	fmt.Println(strings.Repeat("-", longestString+preCalculationCharactersLength))
-	fmt.Printf("Attempt %d/%d failed\n", attempt, retryCount+1)
-	fmt.Printf("Error:      : %s\n", err.Error())
-	fmt.Println("\nRequest:")
-	fmt.Printf("Proxy       : %s\n", proxy)
-	fmt.Printf("Url         : %s\n", url)
-	fmt.Printf("Method      : %s\n", method)
-	fmt.Println("Headers     :")
-	for _, h := range headers {
-		fmt.Println(h)
-	}
-	fmt.Printf("Body        : %s\n", body)
-	fmt.Printf("Timeout     : %d\n", timeout)
-	fmt.Printf("Retry count : %d\n", retryCount)
-	fmt.Println(strings.Repeat("-", longestString+preCalculationCharactersLength))
+	r.errorLogFunc(HttpError{
+		Error:      err,
+		Attempt:    attempt,
+		ProxyUrl:   proxyUrl,
+		Url:        url,
+		Method:     *r.method,
+		Headers:    headers,
+		Body:       body,
+		Timeout:    *r.timeout,
+		RetryCount: *r.retryCount,
+	})
 }
