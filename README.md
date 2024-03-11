@@ -28,6 +28,7 @@ client.Body(string)
 client.Json(any)
 client.Timeout(int)
 client.RetryCount(int)
+client.ExponentialBackoff
 client.BaseAuth(string, string)
 client.BearerAuth(token)
 ```
@@ -62,8 +63,10 @@ err := resp.Json(&unMarshalInto)
 
 ## 4 Error logging
 
-The http library comes with a way to log to STDOUT. You can enable it by calling
+The http library comes with a way to inject a custom error logger.
+Call the LogErrors method and inject that function that should run everytime an error is raised
 ```
-client.LogErrors(true)
-request.LogErrors(true)
+client.LogErrors(true, func(e httpclient.HttpError) {
+	log.Errorf("Error reaching URL: %s with error: %s", e.Url, e.Error.Error())
+})
 ```
