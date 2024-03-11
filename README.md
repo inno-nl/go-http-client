@@ -28,7 +28,7 @@ client.Body(string)
 client.Json(any)
 client.Timeout(int)
 client.RetryCount(int)
-client.ExponentialBackoff
+client.ExponentialBackoff(int)
 client.BaseAuth(string, string)
 client.BearerAuth(token)
 ```
