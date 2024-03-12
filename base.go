@@ -194,6 +194,16 @@ func (b *base) BearerAuth(token string) {
 }
 
 func (b *base) generateUrl() string {
+	emptyUrl := ""
+
+	if b.baseUrl == nil {
+		b.baseUrl = &emptyUrl
+	}
+
+	if b.path == nil {
+		b.path = &emptyUrl
+	}
+
 	fullUrl := fmt.Sprintf(
 		"%s/%s",
 		strings.TrimRight(*b.baseUrl, "/"),
