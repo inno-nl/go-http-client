@@ -5,7 +5,5 @@ type Client struct {
 }
 
 func (c *Client) NewRequest() *Request {
-	r := &Request{c.base}
-
-	return r
+	return &Request{c.base}
 }

@@ -47,6 +47,8 @@ func (r *Request) Send() (response *Response, err error) {
 		return
 	}
 
+	fmt.Printf("\n\nRequesting URL: %s with method: %s\n\n", url, *r.method)
+
 	// User agent
 	req.Header.Set(
 		"user-agent",
@@ -118,7 +120,7 @@ func (r *Request) logError(req *http.Request, attempt int, err error) {
 		body = *r.body
 	}
 
-	r.errorLogFunc(HttpError{
+	r.errorLogFunc(Error{
 		Error:      err,
 		Attempt:    attempt,
 		ProxyUrl:   proxyUrl,

@@ -26,9 +26,9 @@ type base struct {
 	errorLogFunc       ErrorLogFunc
 }
 
-type ErrorLogFunc func(HttpError)
+type ErrorLogFunc func(e Error)
 
-type HttpError struct {
+type Error struct {
 	Error      error
 	Attempt    int
 	ProxyUrl   string
