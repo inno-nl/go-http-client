@@ -47,8 +47,6 @@ func (r *Request) Send() (response *Response, err error) {
 		return
 	}
 
-	fmt.Printf("\n\nRequesting URL: %s with method: %s\n\n", url, *r.method)
-
 	// User agent
 	req.Header.Set(
 		"user-agent",
