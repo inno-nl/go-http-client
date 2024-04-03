@@ -39,18 +39,21 @@ type HttpbinEcho struct {
 	Origin  string
 	Url     string
 	Data    string
-	Json    any
+	Json    map[string]any
 	Headers map[string]string
 }
 
 func TestParameters(t *testing.T) {
 	const customHeader = "X-Hello"
-	url := "https://httpbin.org/anything?preset&reset=initial"
+	url := "invalid:///anything?preset&reset=initial"
 	r := New(url)
+	r.URL.Scheme = "https"
+	r.URL.Host = "httpbin.org"
 	r.URL.RawQuery += "&test"
+	r.Parameters.Add("reset", "added")
 	r.Parameters.Set("reset", "updated")
-	r.Parameters.Add("new", "")
 	r.Request.Header.Set(customHeader, url)
+	r.PostJson(struct{Greeting string}{"HI!"})
 
 	var res HttpbinEcho
 	err := r.Json(&res)
@@ -61,12 +64,14 @@ func TestParameters(t *testing.T) {
 	if v := res.Url; v != u {
 		t.Fatalf("sent url (%s) mismatch: %v", v, u)
 	}
-	// TODO r.URL.Host
 	if v := res.Headers["User-Agent"]; v != DefaultAgent {
 		t.Fatalf("sent user agent mismatch: %v", v)
 	}
 	if v := res.Headers[customHeader]; v != url {
 		t.Fatalf("missing custom header %s: %v", customHeader, v)
+	}
+	if v := res.Json["Greeting"]; v != "HI!" {
+		t.Fatalf("sent json data mismatch: %v", res.Json)
 	}
 }
 

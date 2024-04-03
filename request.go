@@ -27,16 +27,19 @@ type Request struct {
 
 func New(ref string) *Request {
 	// http.NewRequest() without method and body
-	u, _ := url.Parse(ref) // TODO retain error
-	// TODO Parameters from RawQuery
+	u, _ := url.Parse(ref) // final errors reported by Client.Do()
 	r := &http.Request{
 		URL:    u,
 		Header: http.Header{"User-Agent": {DefaultAgent}},
 	}
+	params := make(url.Values, 0)
+	if u != nil && u.RawQuery != "" {
+		params, _ = url.ParseQuery(u.RawQuery) // TODO error
+	}
 	return &Request{
 		Client:     &http.Client{},
 		Request:    r,
-		Parameters: make(url.Values, 0),
+		Parameters: params,
 	}
 }
 
@@ -62,7 +65,7 @@ func (r *Request) Post(body string) {
 	rc := bytes.NewBufferString(body)
 	r.Request.Body = io.NopCloser(rc)
 	r.Request.ContentLength = int64(rc.Len())
-	if r.Method == "" { // TODO lost by http.NewRequest()
+	if r.Method == "" {
 		r.Method = "POST"
 	}
 	if _, typeset := r.Request.Header["content-type"]; !typeset {
@@ -90,10 +93,7 @@ func (r *Request) Send() (err error) {
 	}
 
 	if len(r.Parameters) > 0 {
-		if r.URL.RawQuery != "" {
-			r.URL.RawQuery += "&"
-		}
-		r.URL.RawQuery += r.Parameters.Encode()
+		r.URL.RawQuery = r.Parameters.Encode()
 	}
 
 	delay := time.Second
