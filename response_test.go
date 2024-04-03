@@ -3,8 +3,8 @@ package httpclient
 import (
 	"testing"
 
-	"bytes"
 	"fmt"
+	"strings"
 )
 
 func TestInvalid(t *testing.T) {
@@ -18,11 +18,11 @@ func TestInvalid(t *testing.T) {
 
 func TestText(t *testing.T) {
 	url := "http://sheet.shiar.nl/sample.txt"
-	body, err := New(url).Bytes()
+	body, err := New(url).String()
 	if err != nil {
 		t.Fatalf("could not download %s: %v", url, err)
 	}
-	if !bytes.HasPrefix(body, []byte("Unicode sample")) {
+	if !strings.HasPrefix(body, "Unicode sample") {
 		t.Fatalf("error in downloaded %s:\n%s", url, body[:140])
 	}
 }
@@ -87,5 +87,37 @@ func TestPost(t *testing.T) {
 	}
 	if res.Data != input {
 		t.Fatalf("unexpected post results: %v", res)
+	}
+}
+
+func TestRetry(t *testing.T) {
+	url := "https://httpbin.org/status/500"
+	r := New(url)
+	r.Tries = 2
+	err := r.Send()
+	if err != nil {
+		t.Fatalf("error downloading %s: %v", url, err)
+	}
+	if r.StatusCode != 500 {
+		t.Fatalf("downloaded %s with incorrect status: %s", url, r.Status)
+	}
+	if r.Attempt != r.Tries {
+		t.Fatalf("tried %d downloads of %s", r.Attempt, url)
+	}
+}
+
+func TestTimeout(t *testing.T) {
+	url := "https://httpbin.org/delay/2"
+	r := New(url)
+	r.Timeout(1)
+	err := r.Send()
+	if err == nil { // assume deadline exceeded
+		t.Fatalf("downloaded %s despite timeout", url)
+	}
+
+	r.Timeout(3)
+	err = r.Send()
+	if err != nil {
+		t.Fatalf("download with increased timeout failed as well: %v", err)
 	}
 }
