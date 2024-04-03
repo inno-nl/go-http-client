@@ -35,13 +35,47 @@ func TestError(t *testing.T) {
 	}
 }
 
+type HttpbinEcho struct {
+	Origin  string
+	Url     string
+	Data    string
+	Json    any
+	Headers map[string]string
+}
+
+func TestParameters(t *testing.T) {
+	const customHeader = "X-Hello"
+	url := "https://httpbin.org/anything?preset&reset=initial"
+	r := New(url)
+	r.URL.RawQuery += "&test"
+	r.Parameters.Set("reset", "updated")
+	r.Parameters.Add("new", "")
+	r.Request.Header.Set(customHeader, url)
+
+	var res HttpbinEcho
+	err := r.Json(&res)
+	if err != nil {
+		t.Fatalf("could not download %s: %v", url, err)
+	}
+	u := r.URL.String()
+	if v := res.Url; v != u {
+		t.Fatalf("sent url (%s) mismatch: %v", v, u)
+	}
+	// TODO r.URL.Host
+	if v := res.Headers["User-Agent"]; v != DefaultAgent {
+		t.Fatalf("sent user agent mismatch: %v", v)
+	}
+	if v := res.Headers[customHeader]; v != url {
+		t.Fatalf("missing custom header %s: %v", customHeader, v)
+	}
+}
+
 func TestPost(t *testing.T) {
 	url := "https://httpbin.org/post"
 	input := "hi"
 	r := New(url)
 	r.Post(input)
-	r.Method = "POST" // TODO workaround
-	res := struct{Data string}{}
+	var res HttpbinEcho
 	err := r.Json(&res)
 	if err != nil {
 		t.Fatalf("could not post %s: %v", url, err)
