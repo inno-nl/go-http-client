@@ -85,13 +85,17 @@ func (r *Request) BasicAuth(user, pass string) {
 	r.Request.Header.Set("Authorization", "Basic "+token)
 }
 
-func (r *Request) Post(body string) {
-	rc := bytes.NewBufferString(body)
+func (r *Request) setPostData(body []byte) {
+	rc := bytes.NewReader(body)
 	r.Request.Body = io.NopCloser(rc)
 	r.Request.ContentLength = int64(rc.Len())
 	if r.Method == "" {
 		r.Method = "POST"
 	}
+}
+
+func (r *Request) Post(body string) {
+	r.setPostData([]byte(body))
 	if _, typeset := r.Request.Header["content-type"]; !typeset {
 		r.Request.Header.Set("Content-Type", "text/plain")
 	}
@@ -103,12 +107,7 @@ func (r *Request) PostJson(body any) {
 		r.Error = err // TODO join
 		return
 	}
-	rc := bytes.NewReader(data)
-	r.Request.Body = io.NopCloser(rc)
-	r.Request.ContentLength = int64(rc.Len())
-	if r.Method == "" {
-		r.Method = "POST"
-	}
+	r.setPostData(data)
 	if _, typeset := r.Request.Header["content-type"]; !typeset {
 		r.Request.Header.Set("Content-Type", "application/json")
 	}
