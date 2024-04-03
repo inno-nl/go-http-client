@@ -41,6 +41,7 @@ type HttpbinEcho struct {
 	Data    string
 	Json    map[string]any
 	Headers map[string]string
+	Args    map[string]any
 }
 
 func TestParameters(t *testing.T) {
@@ -87,6 +88,41 @@ func TestPost(t *testing.T) {
 	}
 	if res.Data != input {
 		t.Fatalf("unexpected post results: %v", res)
+	}
+}
+
+func TestReuse(t *testing.T) {
+	rtypes := []string{"image/jpeg", "text/plain"}
+	url := "https://httpbin.org/anything"
+	c := New(url)
+
+	for i, rtype := range rtypes {
+		r := c.Clone()
+		r.Timeout(i + 10) // distinct for each subtest
+		r.Request.Header.Set("X-Accept", rtype)
+		r.Parameters.Add("type", rtype)
+		res := HttpbinEcho{}
+		err := r.Json(&res)
+		if err != nil {
+			t.Fatalf("error downloading with %s: %v", rtype, err)
+		}
+		if v := res.Args["type"]; v != rtype {
+			t.Fatalf("request for %s had tainted parameters: %v", rtype, v)
+		}
+		if v := res.Headers["X-Accept"]; v != rtype {
+			t.Fatalf("request for %s instead gave %v", rtype, v)
+		}
+	}
+
+	if v := c.Request.Header.Get("Accept"); v != "" {
+		res := "no response though"
+		if c.Response != nil {
+			res = c.Status
+		}
+		t.Fatalf("client object modified by request %s: %s", v, res)
+	}
+	if v := c.Client.Timeout; v != 0 {
+		t.Fatalf("client timeout modified by request: %s", v)
 	}
 }
 

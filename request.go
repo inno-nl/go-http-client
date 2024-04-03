@@ -43,6 +43,24 @@ func New(ref string) *Request {
 	}
 }
 
+func (r *Request) Clone() *Request {
+	d := new(Request)
+	*d = *r
+	d.Parameters = make(url.Values, len(r.Parameters))
+	for k, v := range r.Parameters {
+		d.Parameters[k] = v
+	}
+	if d.Client != nil {
+		d.Client = new(http.Client)
+		*d.Client = *r.Client
+	}
+	if d.Request != nil {
+		d.Request = r.Request.Clone(r.Context())
+	}
+	// Response intentionally kept
+	return d
+}
+
 func (r *Request) Timeout(s int) {
 	r.Client.Timeout = time.Duration(s) * time.Second
 }
