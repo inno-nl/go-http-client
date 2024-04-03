@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -21,6 +22,7 @@ type Request struct {
 	*http.Request  // on Prepare()
 	*http.Response // on Send()
 
+	DoRetry func(*Request, error) (error)
 	Attempt int // Do() counter in Send()
 	Tries   int // retry Do() if more than 1
 }
@@ -128,8 +130,12 @@ func (r *Request) Send() (err error) {
 		if r.Attempt >= r.Tries {
 			break
 		}
-		// TODO custom retry check
-		if err == nil && r.StatusCode < 500 {
+		if r.DoRetry != nil {
+			err = r.DoRetry(r, err)
+		} else if err == nil && r.StatusCode >= 500 {
+			err = fmt.Errorf("unsuccessful response code %s", r.Status)
+		}
+		if err == nil {
 			break
 		}
 		time.Sleep(delay)
