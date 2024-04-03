@@ -66,7 +66,11 @@ func (r *Request) Timeout(s int) {
 }
 
 func (r *Request) ProxyUrl(ref string) {
-	u, _ := url.Parse(ref) // TODO err
+	u, err := url.Parse(ref)
+	if err != nil {
+		r.Error = err
+		return
+	}
 	r.Client.Transport = &http.Transport{Proxy: http.ProxyURL(u)}
 }
 
@@ -92,7 +96,11 @@ func (r *Request) Post(body string) {
 }
 
 func (r *Request) PostJson(body any) {
-	data, _ := json.Marshal(body) // TODO preserve error
+	data, err := json.Marshal(body)
+	if err != nil {
+		r.Error = err // TODO join
+		return
+	}
 	rc := bytes.NewReader(data)
 	r.Request.Body = io.NopCloser(rc)
 	r.Request.ContentLength = int64(rc.Len())
@@ -107,7 +115,7 @@ func (r *Request) PostJson(body any) {
 func (r *Request) Send() (err error) {
 	err = r.Error
 	if err != nil {
-		return
+		return // TODO wrap error
 	}
 
 	if len(r.Parameters) > 0 {
