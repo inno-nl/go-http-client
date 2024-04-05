@@ -48,9 +48,9 @@ func TestParameters(t *testing.T) {
 	const customHeader = "X-Hello"
 	url := "invalid:///anything?preset&reset=initial"
 	r := NewURL(url)
-	r.URL.Scheme = "https"
-	r.URL.Host = "httpbin.org"
-	r.URL.RawQuery += "&test"
+	r.Request.URL.Scheme = "https"
+	r.Request.URL.Host = "httpbin.org"
+	r.Request.URL.RawQuery += "&test"
 	r.Parameters.Add("reset", "added")
 	r.Parameters.Set("reset", "updated")
 	r.Request.Header.Set(customHeader, url)
@@ -58,7 +58,7 @@ func TestParameters(t *testing.T) {
 
 	r.Prepare()
 	expect := "https://httpbin.org/anything?preset=&reset=updated"
-	if u := r.URL.String(); u != expect {
+	if u := r.Request.URL.String(); u != expect {
 		t.Fatalf("prepared url turned out incorrectly: %s", u)
 	}
 
@@ -67,7 +67,7 @@ func TestParameters(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not download %s: %v", url, err)
 	}
-	u := r.URL.String()
+	u := r.Request.URL.String()
 	if v := res.Url; v != u {
 		t.Fatalf("sent url (%s) mismatch: %v", v, u)
 	}

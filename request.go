@@ -41,8 +41,8 @@ func New() (r *Request) {
 
 func (r *Request) SetURL(ref string) {
 	r.Request.URL, _ = url.Parse(ref) // final errors reported by Client.Do()
-	if r.URL != nil && r.URL.RawQuery != "" {
-		r.Parameters, _ = url.ParseQuery(r.URL.RawQuery) // TODO error
+	if r.Request.URL != nil && r.Request.URL.RawQuery != "" {
+		r.Parameters, _ = url.ParseQuery(r.Request.URL.RawQuery) // TODO error
 	}
 }
 
@@ -60,7 +60,7 @@ func (r *Request) NewURL(ref string) (d *Request) {
 
 func (r *Request) NewPath(path string) (d *Request) {
 	d = r.Clone()
-	d.URL.Path = path
+	d.Request.URL.Path = path
 	// TODO parameters
 	return
 }
@@ -139,7 +139,7 @@ func (r *Request) Post(body any) {
 
 func (r *Request) Prepare() {
 	if len(r.Parameters) > 0 {
-		r.URL.RawQuery = r.Parameters.Encode()
+		r.Request.URL.RawQuery = r.Parameters.Encode()
 	}
 }
 
