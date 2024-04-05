@@ -27,21 +27,23 @@ type Request struct {
 	Tries   int // retry Do() if more than 1
 }
 
-func New(ref string) *Request {
-	// http.NewRequest() without method and body
-	u, _ := url.Parse(ref) // final errors reported by Client.Do()
-	r := &http.Request{
-		URL:    u,
+func New(ref string) (r *Request) {
+	r = new(Request)
+	r.Client = &http.Client{}
+
+	// insufficient data for http.NewRequest()
+	r.Request = &http.Request{
 		Header: http.Header{"User-Agent": {DefaultAgent}},
 	}
-	params := make(url.Values, 0)
-	if u != nil && u.RawQuery != "" {
-		params, _ = url.ParseQuery(u.RawQuery) // TODO error
-	}
-	return &Request{
-		Client:     &http.Client{},
-		Request:    r,
-		Parameters: params,
+	r.Parameters = make(url.Values, 0)
+	r.FullURL(ref)
+	return
+}
+
+func (r *Request) FullURL(ref string) {
+	r.Request.URL, _ = url.Parse(ref) // final errors reported by Client.Do()
+	if r.URL != nil && r.URL.RawQuery != "" {
+		r.Parameters, _ = url.ParseQuery(r.URL.RawQuery) // TODO error
 	}
 }
 
