@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -39,6 +40,14 @@ func (r *Request) AddURL(ref string) error {
 	}
 	if v := u.RawQuery; v != "" || u.ForceQuery {
 		r.Request.URL.RawQuery = v
+	}
+	if queryCut := strings.IndexByte(u.Path, '&'); queryCut >= 0 {
+		// split parameters from path with unencoded ampersand
+		if r.Request.URL.RawQuery != "" {
+			r.Request.URL.RawQuery += "&"
+		}
+		r.Request.URL.RawQuery += u.Path[queryCut+1:] // after
+		u.Path = u.Path[:queryCut]                    // before
 	}
 
 	if v := u.Path; v != "" {

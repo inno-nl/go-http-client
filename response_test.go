@@ -53,14 +53,13 @@ func TestParameters(t *testing.T) {
 	r := NewURL(url)
 	r.Request.URL.Scheme = "https"
 	r.Request.URL.Host = server
-	r.Request.URL.RawQuery += "&test"
-	r.Parameters.Add("reset", "added")
-	r.Parameters.Set("reset", "updated")
+	r.AddURL("?reset=updated")
+	r.AddURL("&reset=added")
 	r.Request.Header.Set(customHeader, url)
 	r.Post(struct{Greeting string}{"HI!"})
 
 	r.Prepare()
-	expect := s + "/anything?preset=&reset=updated"
+	expect := s + "/anything?reset=updated&reset=added"
 	if u := r.Request.URL.String(); u != expect {
 		t.Fatalf("prepared url turned out incorrectly: %s", u)
 	}
