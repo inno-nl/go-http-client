@@ -54,7 +54,7 @@ func TestParameters(t *testing.T) {
 	r.Parameters.Add("reset", "added")
 	r.Parameters.Set("reset", "updated")
 	r.Request.Header.Set(customHeader, url)
-	r.PostJson(struct{Greeting string}{"HI!"})
+	r.Post(struct{Greeting string}{"HI!"})
 
 	var res HttpbinEcho
 	err := r.Json(&res)
@@ -78,16 +78,26 @@ func TestParameters(t *testing.T) {
 
 func TestPost(t *testing.T) {
 	url := "https://httpbin.org/post"
-	input := "hi"
 	r := NewURL(url)
-	r.Post(input)
+	r.Post(nil)
 	var res HttpbinEcho
 	err := r.Json(&res)
 	if err != nil {
 		t.Fatalf("could not post %s: %v", url, err)
 	}
-	if res.Data != input {
+	if res.Data != "" {
 		t.Fatalf("unexpected post results: %v", res)
+	}
+
+	input := "hi"
+	r.Response = nil // reset
+	r.Post(input)
+	err = r.Json(&res)
+	if err != nil {
+		t.Fatalf("could not post %s with json: %v", url, err)
+	}
+	if res.Data != input {
+		t.Fatalf("mismatching post results: %v", res)
 	}
 }
 

@@ -105,32 +105,36 @@ func (r *Request) BasicAuth(user, pass string) {
 	r.Request.Header.Set("Authorization", "Basic "+token)
 }
 
-func (r *Request) setPostData(body []byte) {
-	rc := bytes.NewReader(body)
-	r.Request.Body = io.NopCloser(rc)
-	r.Request.ContentLength = int64(rc.Len())
+func (r *Request) Post(body any) {
 	if r.Method == "" {
 		r.Method = "POST"
 	}
-}
 
-func (r *Request) Post(body string) {
-	r.setPostData([]byte(body))
-	if _, typeset := r.Request.Header["content-type"]; !typeset {
-		r.Request.Header.Set("Content-Type", "text/plain")
+	var data []byte
+	switch body.(type) {
+	case nil:
+	case string:
+		data = []byte(body.(string)) // fallthrough
+	case []byte:
+		data = body.([]byte)
+		if _, typeset := r.Request.Header["content-type"]; !typeset {
+			r.Request.Header.Set("Content-Type", "text/plain")
+		}
+	default:
+		var err error
+		data, err = json.Marshal(body)
+		if err != nil {
+			r.Error = err // TODO join
+			return
+		}
+		if _, typeset := r.Request.Header["content-type"]; !typeset {
+			r.Request.Header.Set("Content-Type", "application/json")
+		}
 	}
-}
-
-func (r *Request) PostJson(body any) {
-	data, err := json.Marshal(body)
-	if err != nil {
-		r.Error = err // TODO join
-		return
-	}
-	r.setPostData(data)
-	if _, typeset := r.Request.Header["content-type"]; !typeset {
-		r.Request.Header.Set("Content-Type", "application/json")
-	}
+	rc := bytes.NewReader(data)
+	r.Request.Body = io.NopCloser(rc)
+	r.Request.ContentLength = int64(rc.Len())
+	// TODO r.Request.GetBody
 }
 
 func (r *Request) Send() (err error) {
