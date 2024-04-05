@@ -68,7 +68,7 @@ func (r *Request) Clone() *Request {
 	if d.Request != nil {
 		d.Request = r.Request.Clone(r.Context())
 	}
-	// Response intentionally kept
+	// Response will be reset by Send()
 	return d
 }
 
@@ -78,7 +78,13 @@ func (r *Request) Prepare() {
 	}
 }
 
-func (r *Request) Send() (err error) {
+func (r *Request) Send() error {
+	r.Response = nil
+	r.Attempt = 0
+	return r.Resend()
+}
+
+func (r *Request) Resend() (err error) {
 	err = r.Error
 	if err != nil {
 		return // TODO wrap error
@@ -87,7 +93,7 @@ func (r *Request) Send() (err error) {
 	r.Prepare()
 
 	delay := time.Second
-	for r.Attempt = 1; ; r.Attempt++ {
+	for r.Attempt++; ; r.Attempt++ {
 		r.Response, err = r.Client.Do(r.Request)
 		if r.Attempt >= r.Tries {
 			break

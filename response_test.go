@@ -158,6 +158,41 @@ func TestRetry(t *testing.T) {
 	}
 }
 
+func TestResend(t *testing.T) {
+	r := NewURL("https://httpbin.org/status/500")
+	r.Tries = 4
+	r.DoRetry = func (r *Request, e error) error {
+		if r.StatusCode == 500 {
+			// change to a client error for the next attempt
+			r.Request.URL.Path = "/status/404"
+			return fmt.Errorf("retry after initial code %s", r.Status)
+		}
+		return e
+	}
+
+	err := r.Send() // 500 then 404, no 3rd retry
+	if err != nil {
+		t.Fatalf("error downloading %s: %v", r.Request.URL, err)
+	}
+	if r.StatusCode != 404 {
+		t.Fatalf("downloaded %s with unexpected status: %s", r.Request.URL, r.Status)
+	}
+	if r.Attempt != 2 {
+		t.Fatalf("tried %d initial downloads of %s", r.Attempt, r.Request.URL)
+	}
+
+	err = r.Resend() // another 404, no retries
+	if err != nil {
+		t.Fatalf("error redownloading %s: %v", r.Request.URL, err)
+	}
+	if r.StatusCode != 404 {
+		t.Fatalf("redownloaded %s with incorrect status: %s", r.Request.URL, r.Status)
+	}
+	if r.Attempt != 3 {
+		t.Fatalf("tried %d total downloads of %s", r.Attempt, r.Request.URL)
+	}
+}
+
 func TestTimeout(t *testing.T) {
 	url := "https://httpbin.org/delay/1"
 	r := NewURL(url)
