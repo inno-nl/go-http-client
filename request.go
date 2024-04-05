@@ -58,6 +58,13 @@ func (r *Request) NewURL(ref string) (d *Request) {
 	return
 }
 
+func (r *Request) NewPath(path string) (d *Request) {
+	d = r.Clone()
+	d.URL.Path = path
+	// TODO parameters
+	return
+}
+
 func (r *Request) Clone() *Request {
 	d := new(Request)
 	*d = *r

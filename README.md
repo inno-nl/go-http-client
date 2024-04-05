@@ -32,8 +32,7 @@ client.Request.Header.Set("Accept", "application/json")
 r1 := client.NewURL("https://httpbin.org/status/500")
 err = r1.Send()
 
-r2 := r1.Clone()
-r2.URL.Path = "/image"
+r2 := r1.NewPath("/image")
 r2.Request.Header.Set("Accept", "image/webp")
 img, err := r2.Bytes()
 ```
