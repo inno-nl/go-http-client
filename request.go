@@ -27,7 +27,7 @@ type Request struct {
 	Tries   int // retry Do() if more than 1
 }
 
-func New(ref string) (r *Request) {
+func New() (r *Request) {
 	r = new(Request)
 	r.Client = &http.Client{}
 
@@ -36,15 +36,26 @@ func New(ref string) (r *Request) {
 		Header: http.Header{"User-Agent": {DefaultAgent}},
 	}
 	r.Parameters = make(url.Values, 0)
-	r.FullURL(ref)
 	return
 }
 
-func (r *Request) FullURL(ref string) {
+func (r *Request) SetURL(ref string) {
 	r.Request.URL, _ = url.Parse(ref) // final errors reported by Client.Do()
 	if r.URL != nil && r.URL.RawQuery != "" {
 		r.Parameters, _ = url.ParseQuery(r.URL.RawQuery) // TODO error
 	}
+}
+
+func NewURL(ref string) (r *Request) {
+	r = New()
+	r.SetURL(ref)
+	return
+}
+
+func (r *Request) NewURL(ref string) (d *Request) {
+	d = r.Clone()
+	d.SetURL(ref)
+	return
 }
 
 func (r *Request) Clone() *Request {
