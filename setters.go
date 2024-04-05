@@ -17,11 +17,11 @@ func (r *Request) SetURL(ref string) {
 	}
 }
 
-func (r *Request) Timeout(s int) {
+func (r *Request) SetTimeout(s int) {
 	r.Client.Timeout = time.Duration(s) * time.Second
 }
 
-func (r *Request) ProxyUrl(ref string) {
+func (r *Request) SetProxyURL(ref string) {
 	u, err := url.Parse(ref)
 	if err != nil {
 		r.Error = err
@@ -30,11 +30,11 @@ func (r *Request) ProxyUrl(ref string) {
 	r.Client.Transport = &http.Transport{Proxy: http.ProxyURL(u)}
 }
 
-func (r *Request) BearerAuth(token string) {
+func (r *Request) SetBearerAuth(token string) {
 	r.Request.Header.Set("Authorization", "Bearer "+token)
 }
 
-func (r *Request) BasicAuth(user, pass string) {
+func (r *Request) SetBasicAuth(user, pass string) {
 	token := base64.StdEncoding.EncodeToString([]byte(user + ":" + pass))
 	r.Request.Header.Set("Authorization", "Basic "+token)
 }

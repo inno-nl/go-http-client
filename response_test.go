@@ -114,7 +114,7 @@ func TestReuse(t *testing.T) {
 
 	for i, rtype := range rtypes {
 		r := c.Clone()
-		r.Timeout(i + 10) // distinct for each subtest
+		r.SetTimeout(i + 10) // distinct for each subtest
 		r.Request.Header.Set("X-Accept", rtype)
 		r.Parameters.Add("type", rtype)
 		res := HttpbinEcho{}
@@ -161,13 +161,13 @@ func TestRetry(t *testing.T) {
 func TestTimeout(t *testing.T) {
 	url := "https://httpbin.org/delay/1"
 	r := NewURL(url)
-	r.Timeout(1) // insufficient for transfer overhead
+	r.SetTimeout(1) // insufficient for transfer overhead
 	err := r.Send()
 	if err == nil { // assume deadline exceeded
 		t.Fatalf("downloaded %s despite timeout", url)
 	}
 
-	r.Timeout(5) // an additional 4s should be enough
+	r.SetTimeout(5) // an additional 4s should be enough
 	err = r.Send()
 	if err != nil {
 		t.Fatalf("download with increased timeout failed as well: %v", err)

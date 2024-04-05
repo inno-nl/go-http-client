@@ -25,7 +25,7 @@ err := r.Json(&res)
 
 ```go
 client := httpclient.New()
-client.Timeout(60)
+client.SetTimeout(60)
 client.Tries = 5 // retry server errors after 1s, 2s, 4s, 8s
 client.Request.Header.Set("Accept", "application/json")
 
