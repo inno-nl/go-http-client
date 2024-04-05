@@ -133,6 +133,23 @@ func TestPath(t *testing.T) {
 	}
 }
 
+func TestAuthorize(t *testing.T) {
+	url := "//test@0:80"
+	r := NewURL(url)
+	r.SetBasicAuth("us*r", "passw*rd")
+	if r.Request.URL.String() != url {
+		t.Fatalf("altered base request %s: %s", url, r.Request.URL)
+	}
+	if v := r.Request.Header.Get("Authorization"); v != "Basic dXMqcjpwYXNzdypyZA==" {
+		t.Fatalf("unexpected basic auth header: %s", v)
+	}
+
+	r.SetBearerAuth("tok*n")
+	if v := r.Request.Header.Get("Authorization"); v != "Bearer tok*n" {
+		t.Fatalf("unexpected bearer auth header: %s", v)
+	}
+}
+
 func TestPost(t *testing.T) {
 	url := "https://httpbin.org/post"
 	r := NewURL(url)
