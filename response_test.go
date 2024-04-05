@@ -114,7 +114,7 @@ func TestReuse(t *testing.T) {
 		}
 	}
 
-	if v := c.Request.Header.Get("Accept"); v != "" {
+	if v := c.Request.Header.Get("X-Accept"); v != "" {
 		res := "no response though"
 		if c.Response != nil {
 			res = c.Status
@@ -143,15 +143,15 @@ func TestRetry(t *testing.T) {
 }
 
 func TestTimeout(t *testing.T) {
-	url := "https://httpbin.org/delay/2"
+	url := "https://httpbin.org/delay/1"
 	r := New(url)
-	r.Timeout(1)
+	r.Timeout(1) // insufficient for transfer overhead
 	err := r.Send()
 	if err == nil { // assume deadline exceeded
 		t.Fatalf("downloaded %s despite timeout", url)
 	}
 
-	r.Timeout(3)
+	r.Timeout(5) // an additional 4s should be enough
 	err = r.Send()
 	if err != nil {
 		t.Fatalf("download with increased timeout failed as well: %v", err)
