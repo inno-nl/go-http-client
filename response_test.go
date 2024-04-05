@@ -56,6 +56,12 @@ func TestParameters(t *testing.T) {
 	r.Request.Header.Set(customHeader, url)
 	r.Post(struct{Greeting string}{"HI!"})
 
+	r.Prepare()
+	expect := "https://httpbin.org/anything?preset=&reset=updated"
+	if u := r.URL.String(); u != expect {
+		t.Fatalf("prepared url turned out incorrectly: %s", u)
+	}
+
 	var res HttpbinEcho
 	err := r.Json(&res)
 	if err != nil {

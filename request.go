@@ -137,15 +137,19 @@ func (r *Request) Post(body any) {
 	// TODO r.Request.GetBody
 }
 
+func (r *Request) Prepare() {
+	if len(r.Parameters) > 0 {
+		r.URL.RawQuery = r.Parameters.Encode()
+	}
+}
+
 func (r *Request) Send() (err error) {
 	err = r.Error
 	if err != nil {
 		return // TODO wrap error
 	}
 
-	if len(r.Parameters) > 0 {
-		r.URL.RawQuery = r.Parameters.Encode()
-	}
+	r.Prepare()
 
 	delay := time.Second
 	for r.Attempt = 1; ; r.Attempt++ {
