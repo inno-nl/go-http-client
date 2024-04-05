@@ -16,14 +16,6 @@ func (r *Request) AddURL(ref string) error {
 	if err != nil {
 		return err
 	}
-	if v := u.RawQuery; v != "" {
-		r.Parameters, err = url.ParseQuery(v)
-		if err != nil {
-			return err
-		}
-	} else if u.ForceQuery {
-		r.Parameters = make(url.Values, 0)
-	}
 	if r.Request.URL == nil {
 		r.Request.URL = u
 		return nil

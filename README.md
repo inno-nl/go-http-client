@@ -14,7 +14,7 @@ data, err := httpclient.NewURL("http://localhost/test").String()
 ```go
 r := httpclient.NewURL("https://httpbin.org/status/404")
 r.AddURL("/json") // alter endpoint
-r.Parameters.Set("custom", "query")
+r.AddURL("?custom=query") // keeps other parts
 r.Request.Header.Del("User-Agent")
 r.Post("payload")
 res := struct{Data any}{}
