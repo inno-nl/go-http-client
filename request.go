@@ -37,20 +37,26 @@ func New() (r *Request) {
 
 func NewURL(ref string) (r *Request) {
 	r = New()
-	r.SetURL(ref)
+	_ = r.AddURL(ref) // invalid results reported by Client.Do()
 	return
 }
 
 func (r *Request) NewURL(ref string) (d *Request) {
 	d = r.Clone()
-	d.SetURL(ref)
+	d.Request.URL = nil
+	err := d.AddURL(ref)
+	if err != nil {
+		d.Error = err
+	}
 	return
 }
 
 func (r *Request) NewPath(path string) (d *Request) {
 	d = r.Clone()
-	d.Request.URL.Path = path
-	// TODO parameters
+	err := d.AddURL(path)
+	if err != nil {
+		d.Error = err // TODO join
+	}
 	return
 }
 

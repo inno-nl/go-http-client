@@ -10,11 +10,47 @@ import (
 	"time"
 )
 
-func (r *Request) SetURL(ref string) {
-	r.Request.URL, _ = url.Parse(ref) // final errors reported by Client.Do()
-	if r.Request.URL != nil && r.Request.URL.RawQuery != "" {
-		r.Parameters, _ = url.ParseQuery(r.Request.URL.RawQuery) // TODO error
+func (r *Request) AddURL(ref string) error {
+	u, err := url.Parse(ref)
+	if err != nil {
+		return err
 	}
+	if v := u.RawQuery; v != "" {
+		r.Parameters, err = url.ParseQuery(v)
+		if err != nil {
+			return err
+		}
+	} else if u.ForceQuery {
+		r.Parameters = make(url.Values, 0)
+	}
+	if r.Request.URL == nil {
+		r.Request.URL = u
+		return nil
+	}
+
+	if v := u.Scheme; v != "" {
+		r.Request.URL.Scheme = v
+	}
+	if v := u.User; v != nil {
+		r.Request.URL.User = v
+	}
+	if v := u.Host; v != "" {
+		r.Request.URL.Host = v
+	}
+	if v := u.RawQuery; v != "" || u.ForceQuery {
+		r.Request.URL.RawQuery = v
+	}
+
+	if v := u.Path; v != "" {
+		if v[0] != '/' {
+			// append relative path to existing base
+			v = r.Request.URL.Path + "/" + v
+		}
+		r.Request.URL.Path = v
+	}
+	r.Request.URL.Fragment = u.Fragment // assume related
+
+	return nil
 }
 
 func (r *Request) SetTimeout(s int) {
