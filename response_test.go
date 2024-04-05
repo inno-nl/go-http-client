@@ -7,6 +7,9 @@ import (
 	"strings"
 )
 
+const server = "httpbin.org"
+const s = "https://" + server
+
 func TestInvalid(t *testing.T) {
 	url := "invalid:blopplop"
 	_, err := NewURL(url).Bytes()
@@ -17,18 +20,18 @@ func TestInvalid(t *testing.T) {
 }
 
 func TestText(t *testing.T) {
-	url := "http://sheet.shiar.nl/sample.txt"
+	url := s + "/encoding/utf8"
 	body, err := NewURL(url).String()
 	if err != nil {
 		t.Fatalf("could not download %s: %v", url, err)
 	}
-	if !strings.HasPrefix(body, "Unicode sample") {
+	if !strings.HasPrefix(body, "<h1>Unicode Demo</h1>") {
 		t.Fatalf("error in downloaded %s:\n%s", url, body[:140])
 	}
 }
 
 func TestError(t *testing.T) {
-	url := "https://httpbin.org/status/404"
+	url := s + "/status/404"
 	_, err := NewURL(url).Bytes()
 	if err == nil || err.Error() != "unsuccessful response code 404 Not Found" {
 		t.Fatalf("unexpected error from %s: %v", url, err)
@@ -49,7 +52,7 @@ func TestParameters(t *testing.T) {
 	url := "invalid:///anything?preset&reset=initial"
 	r := NewURL(url)
 	r.Request.URL.Scheme = "https"
-	r.Request.URL.Host = "httpbin.org"
+	r.Request.URL.Host = server
 	r.Request.URL.RawQuery += "&test"
 	r.Parameters.Add("reset", "added")
 	r.Parameters.Set("reset", "updated")
@@ -57,7 +60,7 @@ func TestParameters(t *testing.T) {
 	r.Post(struct{Greeting string}{"HI!"})
 
 	r.Prepare()
-	expect := "https://httpbin.org/anything?preset=&reset=updated"
+	expect := s + "/anything?preset=&reset=updated"
 	if u := r.Request.URL.String(); u != expect {
 		t.Fatalf("prepared url turned out incorrectly: %s", u)
 	}
@@ -151,7 +154,7 @@ func TestAuthorize(t *testing.T) {
 }
 
 func TestPost(t *testing.T) {
-	url := "https://httpbin.org/post"
+	url := s + "/post"
 	r := NewURL(url)
 	r.Post(nil)
 	var res HttpbinEcho
@@ -177,7 +180,7 @@ func TestPost(t *testing.T) {
 
 func TestReuse(t *testing.T) {
 	rtypes := []string{"image/jpeg", "text/plain"}
-	url := "https://httpbin.org/anything"
+	url := s + "/anything"
 	c := NewURL(url)
 
 	for i, rtype := range rtypes {
@@ -211,7 +214,7 @@ func TestReuse(t *testing.T) {
 }
 
 func TestRetry(t *testing.T) {
-	url := "https://httpbin.org/status/500"
+	url := s + "/status/500"
 	r := NewURL(url)
 	r.Tries = 2
 	err := r.Send()
@@ -227,7 +230,7 @@ func TestRetry(t *testing.T) {
 }
 
 func TestResend(t *testing.T) {
-	r := NewURL("https://httpbin.org/status/500")
+	r := NewURL(s + "/status/500")
 	r.Tries = 4
 	r.DoRetry = func (r *Request, e error) error {
 		if r.StatusCode == 500 {
@@ -262,7 +265,7 @@ func TestResend(t *testing.T) {
 }
 
 func TestTimeout(t *testing.T) {
-	url := "https://httpbin.org/delay/1"
+	url := s + "/delay/1"
 	r := NewURL(url)
 	r.SetTimeout(1) // insufficient for transfer overhead
 	err := r.Send()
