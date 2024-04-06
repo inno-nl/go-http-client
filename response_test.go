@@ -93,19 +93,19 @@ func TestPath(t *testing.T) {
 	}
 
 	add := "subpath/2?init=second#only+here" // override parameters
-	r := c.NewPath(add)
+	r := c.NewURL(add)
 	if r.Request.URL.String() != "//localhost/basepath/"+add {
 		t.Fatalf("unexpected results of added %s: %s", add, r.Request.URL)
 	}
 
 	add = "/newbase/3" // keep params not hash
-	r = r.NewPath(add)
+	r = r.NewURL(add)
 	if r.Request.URL.String() != "//localhost/newbase/3?init=second" {
 		t.Fatalf("unexpected results of added %s: %s", add, r.Request.URL)
 	}
 
 	add = "https://u:p@inno.nl:80?"
-	r = r.NewPath(add)
+	r = r.NewURL(add)
 	if r.Request.URL.String() != "https://u:p@inno.nl:80/newbase/3" {
 		t.Fatalf("unexpected results of added %s: %s", add, r.Request.URL)
 	}
@@ -114,7 +114,7 @@ func TestPath(t *testing.T) {
 	}
 
 	add = "//test@"
-	r2 := r.NewPath(add)
+	r2 := r.NewURL(add)
 	if v := r2.Request.URL.User.String(); v != "test" {
 		t.Fatalf("unexpected user part of added %s: %s", add, v)
 	}

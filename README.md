@@ -35,7 +35,7 @@ api.Post(nil)
 err = api.Send()
 // process api.Response manually
 
-r := api.NewPath("image") // post to "/base/image?limit=100"
+r := api.NewURL("image") // post to "/base/image?limit=100"
 r.Request.Header.Set("Accept", "image/webp")
 img, err := r.Bytes()
 ```

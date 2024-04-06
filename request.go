@@ -39,19 +39,9 @@ func NewURL(ref string) (r *Request) {
 
 func (r *Request) NewURL(ref string) (d *Request) {
 	d = r.Clone()
-	d.Request.URL = nil
 	err := d.AddURL(ref)
 	if err != nil {
 		d.Error = err
-	}
-	return
-}
-
-func (r *Request) NewPath(path string) (d *Request) {
-	d = r.Clone()
-	err := d.AddURL(path)
-	if err != nil {
-		d.Error = err // TODO join
 	}
 	return
 }
