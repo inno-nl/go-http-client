@@ -39,3 +39,14 @@ r := api.NewURL("image") // post to "/base/image?limit=100"
 r.Request.Header.Set("Accept", "image/webp")
 img, err := r.Bytes()
 ```
+
+## Parameter manipulation
+
+r := httpclient.NewURL("https://localhost")
+params = url.Values{
+    "config": "default",
+}
+params.Set("config", "override")
+params.Add("limit", 10)
+r.AddURL("?" + params.Encode())
+r.AddURL("&debug")
