@@ -55,7 +55,7 @@ func TestParameters(t *testing.T) {
 	r.Request.URL.Host = server
 	r.AddURL("?reset=updated")
 	r.AddURL("&reset=added")
-	r.Request.Header.Set(customHeader, url)
+	r.SetHeader(customHeader, url)
 	r.Post(struct{Greeting string}{"HI!"})
 	expect := s + "/anything?reset=updated&reset=added"
 	if u := r.Request.URL.String(); u != expect {
@@ -177,7 +177,7 @@ func TestReuse(t *testing.T) {
 	for i, rtype := range rtypes {
 		r := c.Clone()
 		r.SetTimeout(i + 10) // distinct for each subtest
-		r.Request.Header.Set("X-Accept", rtype)
+		r.SetHeader("X-Accept", rtype)
 		r.AddURL("?type=" + rtype)
 		res := HttpbinEcho{}
 		err := r.Json(&res)

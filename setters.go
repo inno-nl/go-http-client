@@ -54,6 +54,10 @@ func (r *Request) AddURL(ref string) error {
 	return nil
 }
 
+func (r *Request) SetHeader(key, value string) {
+	r.Request.Header.Set(key, value)
+}
+
 func (r *Request) SetTimeout(s int) {
 	r.Client.Timeout = time.Duration(s) * time.Second
 }
