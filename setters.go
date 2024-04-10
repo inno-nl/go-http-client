@@ -62,6 +62,13 @@ func (r *Request) SetQuery(replacement url.Values) {
 	r.Request.URL.RawQuery = replacement.Encode()
 }
 
+func (r *Request) AddQuery(k, v string) {
+	if r.Request.URL.RawQuery != "" {
+		r.Request.URL.RawQuery += "&"
+	}
+	r.Request.URL.RawQuery += url.QueryEscape(k) + "=" + url.QueryEscape(v)
+}
+
 func (r *Request) SetTimeout(s int) {
 	r.Client.Timeout = time.Duration(s) * time.Second
 }

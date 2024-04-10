@@ -28,13 +28,15 @@ client.SetTimeout(60)
 client.Tries = 5 // retry server errors after 1s, 2s, 4s, 8s
 client.SetHeader("Accept", "application/json")
 
-api := client.NewURL("https://localhost:8080/base?limit=100")
+api := client.NewURL("https://localhost:8080/base")
+api.AddQuery("limit", "1")
 api.SetBasicAuth("user", "password")
 api.Post(nil)
 err = api.Send()
 // process api.Response manually
 
-r := api.NewURL("image") // post to "/base/image?limit=100"
+r := api.NewURL("image") // post to "/base/image?limit=1"
+r.AddQuery("greeting", "hello?") // .AddURL("&greeting=hello%3f")
 r.SetHeader("Accept", "image/webp")
 img, err := r.Bytes()
 ```

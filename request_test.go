@@ -74,6 +74,10 @@ func TestParseQuery(t *testing.T) {
 	r.AddURL("https:")
 	r.SetQuery(url.Values{"reset": {"replaced", "&double"}})
 	expect := "https:///anything?reset=replaced&reset=%26double"
+
+	r.AddQuery("reset", "&again")
+	r.AddQuery("empty", "")
+	expect += "&reset=%26again&empty="
 	if v := r.Request.URL.String(); v != expect {
 		t.Fatalf("unexpected url results: %s", v)
 	}
