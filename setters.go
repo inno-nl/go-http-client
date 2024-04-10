@@ -56,6 +56,10 @@ func (r *Request) AddURL(ref string) error {
 }
 
 func (r *Request) SetHeader(key string, value any) {
+	if value == nil {
+		r.Request.Header.Del(key)
+		return
+	}
 	s := fmt.Sprintf("%v", value) // stringify any
 	r.Request.Header.Set(key, s)
 }
