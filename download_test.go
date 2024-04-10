@@ -11,10 +11,15 @@ const s = "https://" + server
 
 func TestInvalid(t *testing.T) {
 	url := "invalid:blopplop"
-	_, err := NewURL(url).Bytes()
-	expect := fmt.Sprintf(`Get "%s": unsupported protocol scheme "invalid"`, url)
-	if err.Error() != expect {
+	r := NewURL(url)
+	_, err := r.Bytes()
+	expect := `unsupported protocol scheme "invalid"`
+	expect = fmt.Sprintf(`Get "%s": %s`, url, expect)
+	if err == nil || err.Error() != expect {
 		t.Fatalf("missing protocol error: %v", err)
+	}
+	if v := r.Response; v != nil {
+		t.Fatalf("unexpected response: %v", v)
 	}
 }
 

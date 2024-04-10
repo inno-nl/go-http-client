@@ -33,20 +33,20 @@ func (r *Request) Receive() (err error) {
 
 func (r *Request) Bytes() (out []byte, err error) {
 	err = r.Receive()
-	if err != nil {
+	if r.Response == nil {
 		return
 	}
 	defer r.Response.Body.Close()
-	out, err = io.ReadAll(r.Response.Body)
+	out, ioerr := io.ReadAll(r.Response.Body)
+	if err == nil {
+		err = ioerr
+	}
 	return
 }
 
 func (r *Request) String() (string, error) {
 	body, err := r.Bytes()
-	if err != nil {
-		return "", err
-	}
-	return string(body), nil
+	return string(body), err
 }
 
 // Specific error message given if Json() encounters an xml body (for example

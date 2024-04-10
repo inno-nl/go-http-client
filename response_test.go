@@ -10,6 +10,9 @@ import (
 
 const sampleText = "Eĥoŝanĝº ĉiĵaŭde" // valid unicode
 const sampleData = "Eĥoŝanĝ\272 ĉiĵaŭde" // text with utf8 error
+const sampleHtml = `<?xml version="1.0"?><html>
+<h1>hell☺</h1><pre><span class=""><!-- HTM&#x4C; --></span>
+` // greeting with some tags
 const xmlDeclare = `<?xml version='1.0' encoding='us-ascii'?>`
 const sampleXml  = xmlDeclare + `
 <!-- copied from https://httpbin.org/xml -->
@@ -45,8 +48,7 @@ func TestRequestEmpty(t *testing.T) {
 }
 
 func TestRequestStatus(t *testing.T) {
-	page := "<h1>hello</h1>"
-	r := httpResult(404, page)
+	r := httpResult(404, sampleHtml)
 	body, err := r.String()
 
 	expect := "unsuccessful response code 404 Not Found"
@@ -56,7 +58,7 @@ func TestRequestStatus(t *testing.T) {
 	if err.Error() != expect {
 		t.Fatalf("unexpected download error: %v", err)
 	}
-	if body != "" {
+	if body != sampleHtml {
 		t.Fatalf("unexpected download: %v", body)
 	}
 }
