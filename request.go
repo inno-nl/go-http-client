@@ -9,7 +9,7 @@ import (
 const DefaultAgent = "inno-go-http-client/2"
 
 type Request struct {
-	Error      error      // postponed
+	Error error // postponed until Send()
 
 	*http.Client
 	*http.Request

@@ -60,6 +60,7 @@ func TestRequestStatus(t *testing.T) {
 	if err == nil || r.StatusCode != 404 {
 		t.Fatalf("error status not reported: %v", r.Status)
 	}
+	// TODO wrap
 	if err.Error() != expect {
 		t.Fatalf("unexpected download error: %v", err)
 	}

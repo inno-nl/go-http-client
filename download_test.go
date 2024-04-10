@@ -3,20 +3,25 @@ package httpclient
 import (
 	"testing"
 
+	"errors"
 	"fmt"
+	"net/url"
 )
 
 const server = "httpbin.org"
 const s = "https://" + server
 
 func TestInvalid(t *testing.T) {
-	url := "invalid:blopplop"
-	r := NewURL(url)
+	u := "invalid:blopplop"
+	r := NewURL(u)
 	_, err := r.Bytes()
+	var urlerr *url.Error
+	if !errors.As(err, &urlerr) {
+		t.Fatalf("unexpected error type: %T", err)
+	}
 	expect := `unsupported protocol scheme "invalid"`
-	expect = fmt.Sprintf(`Get "%s": %s`, url, expect)
-	if err == nil || err.Error() != expect {
-		t.Fatalf("missing protocol error: %v", err)
+	if urlerr.Err.Error() != expect {
+		t.Fatalf("missing protocol error: %v", urlerr)
 	}
 	if v := r.Response; v != nil {
 		t.Fatalf("unexpected response: %v", v)
@@ -195,12 +200,19 @@ func TestRemoteResend(t *testing.T) {
 }
 
 func TestRemoteTimeout(t *testing.T) {
-	url := s + "/delay/1"
-	r := NewURL(url)
+	u := s + "/delay/1"
+	r := NewURL(u)
 	r.SetTimeout(1) // insufficient for transfer overhead
 	err := r.Send()
 	if err == nil { // assume deadline exceeded
-		t.Fatalf("downloaded %s despite timeout", url)
+		t.Fatalf("downloaded %s despite timeout", u)
+	}
+	var urlerr *url.Error
+	if !errors.As(err, &urlerr) {
+		t.Fatalf("unexpected error type: %T", err)
+	}
+	if v := fmt.Sprintf("%T", urlerr.Err); v != "*http.httpError" { // reflect.TypeOf
+		t.Fatalf("unexpected wrapped error type: %s", v)
 	}
 
 	r.SetTimeout(5) // an additional 4s should be enough
