@@ -19,7 +19,7 @@ func TestInvalid(t *testing.T) {
 	}
 }
 
-func TestText(t *testing.T) {
+func TestRemoteText(t *testing.T) {
 	url := s + "/encoding/utf8"
 	body, err := NewURL(url).String()
 	if err != nil {
@@ -30,7 +30,7 @@ func TestText(t *testing.T) {
 	}
 }
 
-func TestError(t *testing.T) {
+func TestRemoteError(t *testing.T) {
 	url := s + "/status/404"
 	_, err := NewURL(url).Bytes()
 	if err == nil || err.Error() != "unsuccessful response code 404 Not Found" {
@@ -47,7 +47,7 @@ type HttpbinEcho struct {
 	Args    map[string]any
 }
 
-func TestParameters(t *testing.T) {
+func TestRemoteJson(t *testing.T) {
 	const customHeader = "X-Hello"
 	url := "invalid:///anything?preset&reset=initial"
 	r := NewURL(url)
@@ -82,69 +82,7 @@ func TestParameters(t *testing.T) {
 	}
 }
 
-func TestPath(t *testing.T) {
-	url := "//localhost/basepath?init=first"
-	c := NewURL(url)
-	if c.Request.URL.String() != url {
-		t.Fatalf("altered initial %s: %s", url, c.Request.URL)
-	}
-	if v := c.Request.URL.RawQuery; v != "init=first" {
-		t.Fatalf("unexpected parameters in initial %s: %v", url, v)
-	}
-
-	add := "subpath/2?init=second#only+here" // override parameters
-	r := c.NewURL(add)
-	if r.Request.URL.String() != "//localhost/basepath/"+add {
-		t.Fatalf("unexpected results of added %s: %s", add, r.Request.URL)
-	}
-
-	add = "/newbase/3" // keep params not hash
-	r = r.NewURL(add)
-	if r.Request.URL.String() != "//localhost/newbase/3?init=second" {
-		t.Fatalf("unexpected results of added %s: %s", add, r.Request.URL)
-	}
-
-	add = "https://u:p@inno.nl:80?"
-	r = r.NewURL(add)
-	if r.Request.URL.String() != "https://u:p@inno.nl:80/newbase/3" {
-		t.Fatalf("unexpected results of added %s: %s", add, r.Request.URL)
-	}
-	if v := r.Request.URL.RawQuery; v != "" {
-		t.Fatalf("retained parameters in added %s: %v", add, v)
-	}
-
-	add = "//test@"
-	r2 := r.NewURL(add)
-	if v := r2.Request.URL.User.String(); v != "test" {
-		t.Fatalf("unexpected user part of added %s: %s", add, v)
-	}
-	if v := r.Request.URL.User.String(); v != "u:p" {
-		t.Fatalf("altered user part after added %s: %s", add, v)
-	}
-
-	if c.Request.URL.String() != url {
-		t.Fatalf("initial %s altered along the way: %s", url, c.Request.URL)
-	}
-}
-
-func TestAuthorize(t *testing.T) {
-	url := "//test@0:80"
-	r := NewURL(url)
-	r.SetBasicAuth("us*r", "passw*rd")
-	if r.Request.URL.String() != url {
-		t.Fatalf("altered base request %s: %s", url, r.Request.URL)
-	}
-	if v := r.Request.Header.Get("Authorization"); v != "Basic dXMqcjpwYXNzdypyZA==" {
-		t.Fatalf("unexpected basic auth header: %s", v)
-	}
-
-	r.SetBearerAuth("tok*n")
-	if v := r.Request.Header.Get("Authorization"); v != "Bearer tok*n" {
-		t.Fatalf("unexpected bearer auth header: %s", v)
-	}
-}
-
-func TestPost(t *testing.T) {
+func TestRemotePost(t *testing.T) {
 	url := s + "/post"
 	r := NewURL(url)
 	r.Post(nil)
@@ -169,7 +107,7 @@ func TestPost(t *testing.T) {
 	}
 }
 
-func TestReuse(t *testing.T) {
+func TestRemoteReuse(t *testing.T) {
 	rtypes := []string{"image/jpeg", "text/plain"}
 	url := s + "/anything"
 	c := NewURL(url)
@@ -204,7 +142,7 @@ func TestReuse(t *testing.T) {
 	}
 }
 
-func TestRetry(t *testing.T) {
+func TestRemoteRetry(t *testing.T) {
 	url := s + "/status/500"
 	r := NewURL(url)
 	r.Tries = 2
@@ -220,7 +158,7 @@ func TestRetry(t *testing.T) {
 	}
 }
 
-func TestResend(t *testing.T) {
+func TestRemoteResend(t *testing.T) {
 	r := NewURL(s + "/status/500")
 	r.Tries = 4
 	r.DoRetry = func (r *Request, e error) error {
@@ -255,7 +193,7 @@ func TestResend(t *testing.T) {
 	}
 }
 
-func TestTimeout(t *testing.T) {
+func TestRemoteTimeout(t *testing.T) {
 	url := s + "/delay/1"
 	r := NewURL(url)
 	r.SetTimeout(1) // insufficient for transfer overhead
