@@ -2,6 +2,8 @@ package httpclient
 
 import (
 	"testing"
+
+	"net/url"
 )
 
 func TestParsePath(t *testing.T) {
@@ -63,5 +65,16 @@ func TestParseAuthorize(t *testing.T) {
 	r.SetBearerAuth("tok*n")
 	if v := r.Request.Header.Get("Authorization"); v != "Bearer tok*n" {
 		t.Fatalf("unexpected bearer auth header: %s", v)
+	}
+}
+
+func TestParseQuery(t *testing.T) {
+	u := "invalid:///anything?preset&reset=initial"
+	r := NewURL(u)
+	r.AddURL("https:")
+	r.SetQuery(url.Values{"reset": {"replaced", "&double"}})
+	expect := "https:///anything?reset=replaced&reset=%26double"
+	if v := r.Request.URL.String(); v != expect {
+		t.Fatalf("unexpected url results: %s", v)
 	}
 }

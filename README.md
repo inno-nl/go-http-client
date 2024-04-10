@@ -47,5 +47,5 @@ params = url.Values{
 }
 params.Set("config", "override")
 params.Add("limit", 10)
-r.AddURL("?" + params.Encode())
+r.SetQuery(params)
 r.AddURL("&debug")

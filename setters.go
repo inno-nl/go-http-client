@@ -58,6 +58,10 @@ func (r *Request) SetHeader(key, value string) {
 	r.Request.Header.Set(key, value)
 }
 
+func (r *Request) SetQuery(replacement url.Values) {
+	r.Request.URL.RawQuery = replacement.Encode()
+}
+
 func (r *Request) SetTimeout(s int) {
 	r.Client.Timeout = time.Duration(s) * time.Second
 }
