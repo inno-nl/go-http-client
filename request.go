@@ -1,3 +1,17 @@
+/*
+Replacement HTTP client, building on core net/http objects
+but with a greatly simplified interface.
+
+[New] or [NewURL] prepare an outgoing request:
+
+	c := httpclient.NewURL("http://localhost")
+	r := c.NewURL("endpoint")
+
+Then any of [Send], [Preview], [Bytes], [Text], [Json] or [Xml]
+to send and process depending on the wanted format:
+
+	body, err := r.Text()
+*/
 package httpclient
 
 import (
@@ -7,19 +21,31 @@ import (
 
 const DefaultAgent = "inno-go-http-client/2"
 
+// Combined [Client], [Request] and [Response],
+// containing everything to prepare and download a HTTP request.
+// Should be setup by either [New] or [NewURL]
+// and then altered and executed by its methods.
 type Request struct {
-	Error error // postponed until Send()
+	Error error // Setup exceptions postponed until [Send].
 
+	// Shared [http.Client] with common transportation details
+	// like cookies and timeouts.
 	*http.Client
+	// Current [http.Request] including URL and Headers.
+	// Typically modified from a base Request.
 	*http.Request
-	*http.Response // on Send()
+	// Received [http.Response] populated by [Send].
+	*http.Response
 
 	// Override to check [Send] attempts for temporary exceptions.
 	DoRetry func(*Request, error) error
-	Attempt int // Do() counter in Send()
+	Attempt int // Do() counter in [Send]
 	Tries   int // retry Do() if more than 1
 }
 
+// Initialise a new [Request] with a default user agent.
+// Can be further prepared by client options and common setup,
+// before being cloned by [NewURL] for specific downloads.
 func New() (r *Request) {
 	r = new(Request)
 	r.Client = &http.Client{}
@@ -31,18 +57,25 @@ func New() (r *Request) {
 	return
 }
 
+// Create a new [Request] initialised with an URL.
+// This can either be a complete link ready to be downloaded,
+// or a root path to be extended by endpoints and parameters.
 func NewURL(ref string) (r *Request) {
 	r = New()
 	_ = r.AddURL(ref) // invalid results reported by Client.Do()
 	return
 }
 
+// Clone a Request with its URL replaced or appended
+// by [AddURL]ing the given URI fragment.
 func (r *Request) NewURL(ref string) (d *Request) {
 	d = r.Clone()
 	_ = d.AddURL(ref) // keep ignoring parse errors until Send()
 	return
 }
 
+// Make a deep copy of all contained objects,
+// so the original will not be affected by further use.
 func (r *Request) Clone() *Request {
 	d := new(Request)
 	*d = *r
@@ -57,6 +90,9 @@ func (r *Request) Clone() *Request {
 	return d
 }
 
+// Send the prepared HTTP request, possibly retrying on server errors.
+// Saves a [Response] of query results, but does not download contents yet,
+// expecting manual intervention such as checking [StatusCode].
 func (r *Request) Send() error {
 	r.Response = nil
 	r.Attempt = 0

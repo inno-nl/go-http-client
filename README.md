@@ -1,6 +1,8 @@
 # Inno Golang HTTP Client
 
-A simple http client made for easy communication with microservices or external API's.
+Replacement HTTP client, building on core net/http objects
+but with a greatly simplified interface geared towards
+making REST requests with minimal overhead.
 
 ## Direct download
 

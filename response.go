@@ -18,6 +18,8 @@ func (r *Request) Success() bool {
 	return r.StatusCode >= 200 && r.StatusCode < 300
 }
 
+// Error type given by [Receive] (or any dependent result method)
+// in case of an un[Success]ful [Status] response.
 type StatusError struct {
 	Code   int
 	Status string
@@ -59,8 +61,8 @@ func (r *Request) Bytes() (out []byte, err error) {
 	return
 }
 
-// Error given by Text() if the body does not seem to be proper Unicode.
-// If a different encoding is expected, use Bytes() instead to get raw data
+// Error given by [Text] if the body does not seem to be proper Unicode.
+// If a different encoding is expected, use [Bytes] instead to get raw data
 // without this sanity check.
 var ErrTextInvalid = fmt.Errorf("response body contains invalid UTF-8")
 
@@ -72,11 +74,11 @@ func (r *Request) Text() (string, error) {
 	return string(body), err
 }
 
-// Specific error message given if Json() encounters an xml body (for example
+// Specific error message given if [Json] encounters an xml body (for example
 // an unexpected html error page), instead of a generic json.Unmarshal error:
 // `invalid character '<' looking for beginning of value`
 //
-// In such cases, use Preview() for further debugging:
+// In such cases, use [Preview] for further debugging:
 //
 //	err := r.Json(&res)
 //	if err == httpclient.ErrJsonLikeXml {
@@ -123,7 +125,7 @@ func (r *Request) Xml(serial any) error {
 }
 
 // Abbreviate the first line of a response text,
-// usually after failure to unmarshal Json()
+// usually after failure to unmarshal [Json]
 // to give an indication of any retrieved (error) message instead.
 func (r *Request) Preview() (body string) {
 	body, _ = r.Text()

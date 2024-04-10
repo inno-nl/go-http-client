@@ -11,6 +11,28 @@ import (
 	"time"
 )
 
+// Alter the request URL by replacing or appending some or all parts
+// of an RFC 3986 URI.
+//
+// Most parts will be replaced if present after [url.Parse].
+//
+//	r.AddURL("http://localhost") // initial location
+//	r.AddURL("https:")           // upgrade protocol
+//	r.AddURL(":8080")            // add explicit port number
+//	r.AddURL("#hello there")     // set fragment component
+//
+// A path without leading / is joined to an(y) existing base path
+// after an implied / if necessary:
+//
+//	r.AddURL("/api/v1")   // replacement root
+//	r.AddURL("hello")     // appended endpoint
+//	r.URL.Path += "hello" // concatenated without /
+//
+// A query can be indicated either by standard ? to replace the RawQuery part,
+// or & to keep any existing value:
+//
+//	r.AddURL("&extra") // set in addition to earlier parameters
+//	r.AddURL("?")      // delete everything
 func (r *Request) AddURL(ref string) error {
 	u, err := url.Parse(ref)
 	if err != nil {
@@ -54,6 +76,12 @@ func (r *Request) AddURL(ref string) error {
 	return nil
 }
 
+// Replaces a request header value, equivalent to [Request.Header.Set]
+// but also stringifies values and deletes if nil.
+//
+//	r.SetHeader("user-agent", nil) // delete default
+//	r.SetHeader("x-Error", errors.New("message"))
+//	message := r.Request.Header.Get("X-error") // inherited interface
 func (r *Request) SetHeader(key string, value any) {
 	if value == nil {
 		r.Request.Header.Del(key)
@@ -76,6 +104,12 @@ func (r *Request) SetQuery(replacement url.Values) {
 	r.Request.URL.RawQuery = replacement.Encode()
 }
 
+// Append a &key=value parameter to RawQuery.
+// Like AddURL("&...") but with %-escaping both key and value,
+// and values stringified or omitted if nil.
+//
+//	r.AddQuery("limit", 42)  // AddURL("&limit=42")
+//	r.AddQuery("debug", nil) // AddURL("&debug")
 func (r *Request) AddQuery(k string, v any) {
 	q := &r.Request.URL.RawQuery
 	if *q != "" {
@@ -91,7 +125,7 @@ func (r *Request) AddQuery(k string, v any) {
 // Override the number of [Tries] so an additional number of [Send] attempts
 // are made on receiving server errors.
 //
-// This feature is disabled if kept or set to 0.
+// This feature is disabled if kept or reset to 0.
 // A value of 1 will retry once after waiting for a second.
 // Higher values will keep trying, each time doubling the delay in between.
 // [Response] will be the first success or last error,
@@ -105,6 +139,7 @@ func (r *Request) SetTimeout(s float64) {
 	r.Client.Timeout = time.Duration(s * float64(time.Second))
 }
 
+// Configure a proxy URL as [Client.Transport.Proxy].
 func (r *Request) SetProxyURL(ref string) error {
 	u, err := url.Parse(ref)
 	if err != nil {
