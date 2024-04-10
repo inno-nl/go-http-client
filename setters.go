@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -62,11 +63,16 @@ func (r *Request) SetQuery(replacement url.Values) {
 	r.Request.URL.RawQuery = replacement.Encode()
 }
 
-func (r *Request) AddQuery(k, v string) {
-	if r.Request.URL.RawQuery != "" {
-		r.Request.URL.RawQuery += "&"
+func (r *Request) AddQuery(k string, v any) {
+	q := &r.Request.URL.RawQuery
+	if *q != "" {
+		*q += "&"
 	}
-	r.Request.URL.RawQuery += url.QueryEscape(k) + "=" + url.QueryEscape(v)
+	*q += url.QueryEscape(k)
+	if v != nil {
+		s := fmt.Sprintf("%v", v) // stringify any
+		*q += "=" + url.QueryEscape(s)
+	}
 }
 
 func (r *Request) SetTimeout(s int) {

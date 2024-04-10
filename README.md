@@ -29,7 +29,7 @@ client.Tries = 5 // retry server errors after 1s, 2s, 4s, 8s
 client.SetHeader("Accept", "application/json")
 
 api := client.NewURL("https://localhost:8080/base")
-api.AddQuery("limit", "1")
+api.AddQuery("limit", 1)
 api.SetBasicAuth("user", "password")
 api.Post(nil)
 err = api.Send()
@@ -50,4 +50,4 @@ params = url.Values{
 params.Set("config", "override")
 params.Add("limit", 10)
 r.SetQuery(params)
-r.AddURL("&debug")
+r.AddQuery("debug", nil)

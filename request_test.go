@@ -3,6 +3,7 @@ package httpclient
 import (
 	"testing"
 
+	"fmt"
 	"net/url"
 )
 
@@ -77,7 +78,10 @@ func TestParseQuery(t *testing.T) {
 
 	r.AddQuery("reset", "&again")
 	r.AddQuery("empty", "")
-	expect += "&reset=%26again&empty="
+	r.AddQuery("empty", nil)
+	r.AddQuery("number", 42)
+	r.AddQuery("error", fmt.Errorf("oopß"))
+	expect += "&reset=%26again&empty=&empty&number=42&error=oop%C3%9F"
 	if v := r.Request.URL.String(); v != expect {
 		t.Fatalf("unexpected url results: %s", v)
 	}
