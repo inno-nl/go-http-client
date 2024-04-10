@@ -3,8 +3,10 @@ package httpclient
 import (
 	"testing"
 
+	"bytes"
 	"fmt"
 	"net/url"
+	"strings"
 )
 
 func TestParsePath(t *testing.T) {
@@ -49,6 +51,40 @@ func TestParsePath(t *testing.T) {
 
 	if c.Request.URL.String() != url {
 		t.Fatalf("initial %s altered along the way: %s", url, c.Request.URL)
+	}
+}
+
+func TestParseHeaders(t *testing.T) {
+	url := "incomplete"
+	r := NewURL(url)
+	if v := r.Request.Header; v == nil || v.Get("User-Agent") != DefaultAgent {
+		t.Fatalf("missing default headers after init: %s", v)
+	}
+
+	r.SetHeader("temp", "added")
+	r.SetHeader("test", "first")
+	r.SetHeader("x-empty", "")
+	r.SetHeader("Invalid ", "no error?")
+	r.Request.Header.Del("TEMP")
+	r.Request.Header.Add("test", "second")
+	r.SetHeader("X-String", "string!\n")
+	r.SetHeader("X-Number", "NaN")
+	r.SetHeader("x-number", "42")
+	expect := []string{
+		"Test: first",
+		"Test: second",
+		"User-Agent: " + DefaultAgent,
+		"X-Empty: ",
+		"X-Number: 42",
+		"X-String: string!",
+		"", // eol
+	}
+	w := bytes.NewBuffer([]byte{})
+	if err := r.Request.Header.Write(w); err != nil {
+		t.Fatalf("unexpected header error: %v", err)
+	}
+	if v := w.String(); v != strings.Join(expect, "\r\n") {
+		t.Fatalf("unexpected header results:\n%v", v)
 	}
 }
 
