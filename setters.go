@@ -55,8 +55,9 @@ func (r *Request) AddURL(ref string) error {
 	return nil
 }
 
-func (r *Request) SetHeader(key, value string) {
-	r.Request.Header.Set(key, value)
+func (r *Request) SetHeader(key string, value any) {
+	s := fmt.Sprintf("%v", value) // stringify any
+	r.Request.Header.Set(key, s)
 }
 
 func (r *Request) SetQuery(replacement url.Values) {

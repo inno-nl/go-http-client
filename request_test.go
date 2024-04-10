@@ -69,7 +69,7 @@ func TestParseHeaders(t *testing.T) {
 	r.Request.Header.Add("test", "second")
 	r.SetHeader("X-String", "string!\n")
 	r.SetHeader("X-Number", "NaN")
-	r.SetHeader("x-number", "42")
+	r.SetHeader("x-number", 42)
 	expect := []string{
 		"Test: first",
 		"Test: second",
