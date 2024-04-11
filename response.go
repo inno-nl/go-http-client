@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"unicode/utf8"
 
 	"golang.org/x/text/encoding/charmap"
 )
@@ -44,8 +45,16 @@ func (r *Request) Bytes() (out []byte, err error) {
 	return
 }
 
+// Error given by Text() if the body does not seem to be proper Unicode.
+// If a different encoding is expected, use Bytes() instead to get raw data
+// without this sanity check.
+var ErrTextInvalid = fmt.Errorf("response body contains invalid UTF-8")
+
 func (r *Request) Text() (string, error) {
 	body, err := r.Bytes()
+	if err == nil && !utf8.Valid(body) {
+		err = ErrTextInvalid
+	}
 	return string(body), err
 }
 

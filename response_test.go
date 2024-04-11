@@ -87,6 +87,21 @@ func TestRequestUnicode(t *testing.T) {
 	}
 }
 
+func TestRequestInvalidUnicode(t *testing.T) {
+	r := httpResult(200, sampleData)
+	body, err := r.Text()
+
+	if err == nil {
+		t.Fatalf("unexpected download success: %v", body)
+	}
+	if err != ErrTextInvalid {
+		t.Fatalf("unexpected download error: %v", err)
+	}
+	if body != sampleData {
+		t.Fatalf("missing invalid download: %v", body)
+	}
+}
+
 func TestRequestJsonError(t *testing.T) {
 	r := httpResult(200, sampleXml)
 	var res HttpbinEcho
