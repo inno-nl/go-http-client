@@ -5,6 +5,9 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"strings"
+
+	"golang.org/x/text/encoding/charmap"
 )
 
 func (r *Request) Success() bool {
@@ -66,6 +69,8 @@ func (r *Request) Xml(serial any) error {
 		switch strings.ToLower(xmlenc) {
 		case "us-ascii":
 			out = in // subset of utf-8
+		case "iso-8859-1", "windows-1252":
+			out = charmap.Windows1252.NewDecoder().Reader(in)
 		default:
 			err = fmt.Errorf("unrecognised by httpclient.Xml")
 		}
