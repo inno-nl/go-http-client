@@ -107,6 +107,22 @@ func TestRemotePost(t *testing.T) {
 	}
 }
 
+func TestRemoteXml(t *testing.T) {
+	u := s + "/xml"
+	r := NewURL(u)
+	var res struct {
+		Title string `xml:"title,attr"`
+	}
+	err := r.Xml(&res)
+	if err != nil {
+		t.Fatalf("could not download %s: %v", u, err)
+	}
+	expect := `Sample Slide Show`
+	if res.Title != expect {
+		t.Fatalf("unexpected xml results for <slideshow title />: %v", res.Title)
+	}
+}
+
 func TestRemoteReuse(t *testing.T) {
 	rtypes := []string{"image/jpeg", "text/plain"}
 	url := s + "/anything"

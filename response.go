@@ -61,5 +61,15 @@ func (r *Request) Xml(serial any) error {
 		return err
 	}
 	d := xml.NewDecoder(r.Response.Body)
+	d.CharsetReader = func(xmlenc string, in io.Reader) (out io.Reader, err error) {
+		// support for some common non-utf8 encoding declarations
+		switch strings.ToLower(xmlenc) {
+		case "us-ascii":
+			out = in // subset of utf-8
+		default:
+			err = fmt.Errorf("unrecognised by httpclient.Xml")
+		}
+		return
+	}
 	return d.Decode(&serial)
 }
