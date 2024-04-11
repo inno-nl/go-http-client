@@ -11,7 +11,7 @@ func (r *Request) Success() bool {
 	return r.StatusCode >= 200 && r.StatusCode < 300
 }
 
-func (r *Request) Bytes() (out []byte, err error) {
+func (r *Request) Receive() (err error) {
 	if r.Response == nil {
 		err = r.Send()
 		if err != nil {
@@ -23,6 +23,13 @@ func (r *Request) Bytes() (out []byte, err error) {
 	}
 	if !r.Success() {
 		err = fmt.Errorf("unsuccessful response code %s", r.Status)
+	}
+	return
+}
+
+func (r *Request) Bytes() (out []byte, err error) {
+	err = r.Receive()
+	if err != nil {
 		return
 	}
 	defer r.Response.Body.Close()
@@ -50,9 +57,9 @@ func (r *Request) Json(serial any) error {
 }
 
 func (r *Request) Xml(serial any) error {
-	body, err := r.Bytes()
-	if err != nil {
+	if err := r.Receive(); err != nil {
 		return err
 	}
-	return xml.Unmarshal(body, serial)
+	d := xml.NewDecoder(r.Response.Body)
+	return d.Decode(&serial)
 }
