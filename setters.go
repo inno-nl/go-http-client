@@ -63,6 +63,15 @@ func (r *Request) SetHeader(key string, value any) {
 	r.Request.Header.Set(key, s)
 }
 
+// Completely replace any query parameters by an [url.Values] map.
+//
+//	params = url.Values{
+//	    "config": {"default"},
+//	}
+//	params.Set("config", "override")
+//	params.Add("limit", 10)
+//	r.SetQuery(params)
+//	r.AddQuery("debug", nil)
 func (r *Request) SetQuery(replacement url.Values) {
 	r.Request.URL.RawQuery = replacement.Encode()
 }

@@ -40,14 +40,3 @@ r.AddQuery("greeting", "hello?") // .AddURL("&greeting=hello%3f")
 r.SetHeader("Accept", "image/webp")
 img, err := r.Bytes()
 ```
-
-## Parameter manipulation
-
-r := httpclient.NewURL("https://localhost")
-params = url.Values{
-    "config": "default",
-}
-params.Set("config", "override")
-params.Add("limit", 10)
-r.SetQuery(params)
-r.AddQuery("debug", nil)
