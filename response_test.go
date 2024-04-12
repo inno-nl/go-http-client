@@ -84,6 +84,18 @@ func TestRequestUnicode(t *testing.T) {
 	}
 }
 
+func TestRequestJsonError(t *testing.T) {
+	r := httpResult(200, sampleXml)
+	var res HttpbinEcho
+	err := r.Json(&res)
+	if err == nil {
+		t.Fatalf("unexpected success: %v", res)
+	}
+	if err != ErrJsonLikeXml {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestRequestXml(t *testing.T) {
 	r := httpResult(200, sampleXml)
 	var res struct {

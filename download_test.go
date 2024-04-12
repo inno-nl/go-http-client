@@ -87,6 +87,24 @@ func TestRemotePost(t *testing.T) {
 	}
 }
 
+func TestRemoteJsonError(t *testing.T) {
+	u := s + "/xml"
+	r := NewURL(u)
+	var res HttpbinEcho
+	err := r.Json(&res)
+	if err == nil {
+		t.Fatalf("unexpectedly parsed %s as json: %v", u, res)
+	}
+	if err != ErrJsonLikeXml {
+		t.Fatalf("unexpected error parsing %s: %v", u, err)
+	}
+	_, err = r.Bytes() // TODO support reread after unmarshal error
+	expect := `http2: response body closed`
+	if err == nil || err.Error() != expect {
+		t.Fatalf("unclosed response for %s: %v", u, err)
+	}
+}
+
 func TestRemoteReuse(t *testing.T) {
 	rtypes := []string{"image/jpeg", "text/plain"}
 	url := s + "/anything"

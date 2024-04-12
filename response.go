@@ -48,13 +48,18 @@ func (r *Request) String() (string, error) {
 	return string(body), nil
 }
 
+// Specific error message given if Json() encounters an xml body (for example
+// an unexpected html error page), instead of a generic json.Unmarshal error:
+// `invalid character '<' looking for beginning of value`
+var ErrJsonLikeXml = fmt.Errorf("initial '<' indicates xml not json")
+
 func (r *Request) Json(serial any) error {
 	body, err := r.Bytes()
 	if err != nil {
 		return err
 	}
 	if len(body) > 0 && body[0] == '<' {
-		return fmt.Errorf("initial '<' indicates xml not json") // TODO preview
+		return ErrJsonLikeXml // TODO preview
 	}
 	return json.Unmarshal(body, serial)
 }
