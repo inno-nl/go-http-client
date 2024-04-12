@@ -10,7 +10,8 @@ import (
 
 const sampleText = "Eĥoŝanĝº ĉiĵaŭde" // valid unicode
 const sampleData = "Eĥoŝanĝ\272 ĉiĵaŭde" // text with utf8 error
-const sampleXml  = `<?xml version='1.0' encoding='us-ascii'?>
+const xmlDeclare = `<?xml version='1.0' encoding='us-ascii'?>`
+const sampleXml  = xmlDeclare + `
 <!-- copied from https://httpbin.org/xml -->
 <slideshow author="Yours Truly" title="Sample Slide Show">
 <slide type="all"><title>Wake up to WonderWidgets!</title></slide>
@@ -93,6 +94,9 @@ func TestRequestJsonError(t *testing.T) {
 	}
 	if err != ErrJsonLikeXml {
 		t.Fatalf("unexpected error: %v", err)
+	}
+	if v := r.Preview(); v != xmlDeclare+"..." {
+		t.Fatalf("unexpected preview: %v", v)
 	}
 }
 

@@ -1,6 +1,7 @@
 package httpclient
 
 import (
+	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -51,6 +52,13 @@ func (r *Request) String() (string, error) {
 // Specific error message given if Json() encounters an xml body (for example
 // an unexpected html error page), instead of a generic json.Unmarshal error:
 // `invalid character '<' looking for beginning of value`
+//
+// In such cases, use Preview() for further debugging:
+//
+//	err := r.Json(&res)
+//	if err == httpclient.ErrJsonLikeXml {
+//		fmt.Printf("failed to get %s: %v (%s)", r.URL, err, r.Preview())
+//	}
 var ErrJsonLikeXml = fmt.Errorf("initial '<' indicates xml not json")
 
 func (r *Request) Json(serial any) error {
@@ -59,7 +67,9 @@ func (r *Request) Json(serial any) error {
 		return err
 	}
 	if len(body) > 0 && body[0] == '<' {
-		return ErrJsonLikeXml // TODO preview
+		buf := bytes.NewReader(body)
+		r.Response.Body = io.NopCloser(buf) // copy for rereading
+		return ErrJsonLikeXml
 	}
 	return json.Unmarshal(body, serial)
 }
@@ -82,4 +92,24 @@ func (r *Request) Xml(serial any) error {
 		return
 	}
 	return d.Decode(&serial)
+}
+
+// Abbreviate the first line of a response text,
+// usually after failure to unmarshal Json()
+// to give an indication of any retrieved (error) message instead.
+func (r *Request) Preview() (body string) {
+	body, _ = r.String()
+	if body == "" {
+		return
+	}
+	cut := 160 // maximum length
+	if eol := strings.IndexByte(body, '\n'); eol > 0 && eol < cut {
+		// reduce length to first line ending
+		cut = eol + 3
+	}
+	if cut < len(body) {
+		// abbreviate exceeding line to truncated start and marker
+		body = body[:cut-3] + "..."
+	}
+	return
 }

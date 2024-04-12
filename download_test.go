@@ -98,10 +98,8 @@ func TestRemoteJsonError(t *testing.T) {
 	if err != ErrJsonLikeXml {
 		t.Fatalf("unexpected error parsing %s: %v", u, err)
 	}
-	_, err = r.Bytes() // TODO support reread after unmarshal error
-	expect := `http2: response body closed`
-	if err == nil || err.Error() != expect {
-		t.Fatalf("unclosed response for %s: %v", u, err)
+	if v := r.Preview(); v != xmlDeclare+"..." {
+		t.Fatalf("unexpected preview of %s: %v", u, v)
 	}
 }
 
