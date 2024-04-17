@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -79,7 +80,11 @@ func (r *Request) Json(serial any) error {
 	}
 	jserr := json.Unmarshal([]byte(body), serial)
 	if jserr != nil {
-		err = jserr
+		if err == nil {
+			err = jserr
+		} else {
+			err = errors.Join(err, jserr)
+		}
 	}
 	return err
 }
