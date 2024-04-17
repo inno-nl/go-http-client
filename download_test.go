@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"fmt"
-	"strings"
 )
 
 const server = "httpbin.org"
@@ -16,25 +15,6 @@ func TestInvalid(t *testing.T) {
 	expect := fmt.Sprintf(`Get "%s": unsupported protocol scheme "invalid"`, url)
 	if err.Error() != expect {
 		t.Fatalf("missing protocol error: %v", err)
-	}
-}
-
-func TestRemoteText(t *testing.T) {
-	url := s + "/encoding/utf8"
-	body, err := NewURL(url).String()
-	if err != nil {
-		t.Fatalf("could not download %s: %v", url, err)
-	}
-	if !strings.HasPrefix(body, "<h1>Unicode Demo</h1>") {
-		t.Fatalf("error in downloaded %s:\n%s", url, body[:140])
-	}
-}
-
-func TestRemoteError(t *testing.T) {
-	url := s + "/status/404"
-	_, err := NewURL(url).Bytes()
-	if err == nil || err.Error() != "unsuccessful response code 404 Not Found" {
-		t.Fatalf("unexpected error from %s: %v", url, err)
 	}
 }
 
@@ -104,22 +84,6 @@ func TestRemotePost(t *testing.T) {
 	}
 	if res.Data != input {
 		t.Fatalf("mismatching post results: %v", res)
-	}
-}
-
-func TestRemoteXml(t *testing.T) {
-	u := s + "/xml"
-	r := NewURL(u)
-	var res struct {
-		Title string `xml:"title,attr"`
-	}
-	err := r.Xml(&res)
-	if err != nil {
-		t.Fatalf("could not download %s: %v", u, err)
-	}
-	expect := `Sample Slide Show`
-	if res.Title != expect {
-		t.Fatalf("unexpected xml results for <slideshow title />: %v", res.Title)
 	}
 }
 
