@@ -4,12 +4,16 @@ import (
 	"testing"
 
 	"bytes"
+	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 )
 
 const sampleText = "Eĥoŝanĝº ĉiĵaŭde" // valid unicode
 const sampleData = "Eĥoŝanĝ\272 ĉiĵaŭde" // text with utf8 error
+const sampleJson = ` {"data":"\u2714", "rows":[  ]}` // valid
+const sampleJsoff = `{"data":"...…", "origin": []}` // unexpected Origin
 const sampleHtml = `<?xml version="1.0"?><html>
 <h1>hell☺</h1><pre><span class=""><!-- HTM&#x4C; --></span>
 ` // greeting with some tags
@@ -102,7 +106,42 @@ func TestRequestInvalidUnicode(t *testing.T) {
 	}
 }
 
+func TestRequestJson(t *testing.T) {
+	r := httpResult(200, sampleJson)
+	var res HttpbinEcho
+	err := r.Json(&res)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if v := res.Data; v != "✔" {
+		t.Fatalf("unexpected payload: %v", v)
+	}
+}
+
 func TestRequestJsonError(t *testing.T) {
+	r := httpResult(200, sampleJsoff)
+	var res HttpbinEcho
+	err := r.Json(&res)
+	if err == nil {
+		t.Fatalf("uncaught syntax error: %v", res)
+	}
+	if v := res.Data; v != "...…" {
+		t.Fatalf("missing partial data: %v", v)
+	}
+	if v := res.Origin; v != "" {
+		t.Fatalf("unexpected payload: %v", v)
+	}
+
+	var syntaxerr *json.UnmarshalTypeError
+	if !errors.As(err, &syntaxerr) {
+		t.Fatalf("unexpected error type: %T", err)
+	}
+	if v := syntaxerr.Field; v != "Origin" {
+		t.Fatalf("unexpected error field: %s", v)
+	}
+}
+
+func TestRequestJsonXml(t *testing.T) {
 	r := httpResult(200, sampleXml)
 	var res HttpbinEcho
 	err := r.Json(&res)
