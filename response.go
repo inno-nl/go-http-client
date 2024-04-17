@@ -44,7 +44,7 @@ func (r *Request) Bytes() (out []byte, err error) {
 	return
 }
 
-func (r *Request) String() (string, error) {
+func (r *Request) Text() (string, error) {
 	body, err := r.Bytes()
 	return string(body), err
 }
@@ -98,7 +98,7 @@ func (r *Request) Xml(serial any) error {
 // usually after failure to unmarshal Json()
 // to give an indication of any retrieved (error) message instead.
 func (r *Request) Preview() (body string) {
-	body, _ = r.String()
+	body, _ = r.Text()
 	if body == "" {
 		return
 	}

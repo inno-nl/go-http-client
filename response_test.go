@@ -35,7 +35,7 @@ func httpResult(status int, body string) (r *Request) {
 
 func TestRequestEmpty(t *testing.T) {
 	r := httpResult(204, "")
-	body, err := r.String()
+	body, err := r.Text()
 	if err != nil {
 		t.Fatalf("could not simulate download: %v", err)
 	}
@@ -49,7 +49,7 @@ func TestRequestEmpty(t *testing.T) {
 
 func TestRequestStatus(t *testing.T) {
 	r := httpResult(404, sampleHtml)
-	body, err := r.String()
+	body, err := r.Text()
 
 	expect := "unsuccessful response code 404 Not Found"
 	if err == nil || r.StatusCode != 404 {
@@ -77,7 +77,7 @@ func TestRequestBytes(t *testing.T) {
 
 func TestRequestUnicode(t *testing.T) {
 	r := httpResult(200, sampleText)
-	body, err := r.String()
+	body, err := r.Text()
 
 	if err != nil {
 		t.Fatalf("could not simulate download: %v", err)

@@ -6,7 +6,7 @@ A simple http client made for easy communication with microservices or external 
 
 ```go
 import "github.com/inno-nl/go-http-client"
-data, err := httpclient.NewURL("http://localhost/test").String()
+data, err := httpclient.NewURL("http://localhost/test").Text()
 ```
 
 ## Extended request
