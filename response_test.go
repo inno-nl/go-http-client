@@ -8,11 +8,12 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 )
 
 const sampleText = "Eĥoŝanĝº ĉiĵaŭde" // valid unicode
 const sampleData = "Eĥoŝanĝ\272 ĉiĵaŭde" // text with utf8 error
-const sampleJson = ` {"data":"\u2714", "rows":[  ]}` // valid
+const sampleJson = ` {"data":"\u2714","origin": "...", "rows":[ ]}` // valid
 const sampleJsoff = `{"data":"...…", "origin": []}` // unexpected Origin
 const sampleHtml = `<?xml version="1.0"?><html>
 <h1>hell☺</h1><pre><span class=""><!-- HTM&#x4C; --></span>
@@ -153,6 +154,26 @@ func TestRequestJsonXml(t *testing.T) {
 	}
 	if v := r.Preview(); v != xmlDeclare+"..." {
 		t.Fatalf("unexpected preview: %v", v)
+	}
+}
+
+func TestRequestJsonMojibake(t *testing.T) {
+	s := strings.Replace(sampleJson, ".", "\205", 2) // invalid utf8
+	r := httpResult(200, s)
+	var res HttpbinEcho
+	err := r.Json(&res)
+
+	if err == nil {
+		t.Fatalf("unexpected download success: %v", res)
+	}
+	if v := res.Data; v != "✔" {
+		t.Fatalf("missing partial data: %v", v)
+	}
+	if v := res.Origin; v != "\uFFFD\uFFFD." {
+		t.Fatalf("unexpected results: %v", v)
+	}
+	if err != ErrTextInvalid {
+		t.Fatalf("unexpected download error: %v", err)
 	}
 }
 

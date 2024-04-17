@@ -71,16 +71,17 @@ func (r *Request) Text() (string, error) {
 var ErrJsonLikeXml = fmt.Errorf("initial '<' indicates xml not json")
 
 func (r *Request) Json(serial any) error {
-	body, err := r.Bytes()
-	if err != nil {
-		return err
-	}
+	body, err := r.Text()
 	if len(body) > 0 && body[0] == '<' {
-		buf := bytes.NewReader(body)
+		buf := bytes.NewBufferString(body)
 		r.Response.Body = io.NopCloser(buf) // copy for rereading
 		return ErrJsonLikeXml
 	}
-	return json.Unmarshal(body, serial)
+	jserr := json.Unmarshal([]byte(body), serial)
+	if jserr != nil {
+		err = jserr
+	}
+	return err
 }
 
 func (r *Request) Xml(serial any) error {
