@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"strings"
 	"unicode/utf8"
 
@@ -15,6 +16,15 @@ import (
 
 func (r *Request) Success() bool {
 	return r.StatusCode >= 200 && r.StatusCode < 300
+}
+
+type StatusError struct {
+	Code   int
+	Status string
+}
+
+func (e *StatusError) Error() string {
+	return fmt.Sprintf("unsuccessful response code %s", e.Status)
 }
 
 func (r *Request) Receive() (err error) {
@@ -28,7 +38,10 @@ func (r *Request) Receive() (err error) {
 		}
 	}
 	if !r.Success() {
-		err = fmt.Errorf("unsuccessful response code %s", r.Status)
+		err = &StatusError{r.Response.StatusCode, r.Response.Status}
+		if r.Request != nil && r.Request.URL != nil {
+			err = &url.Error{r.Request.Method, r.Request.URL.String(), err}
+		}
 	}
 	return
 }

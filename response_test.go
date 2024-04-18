@@ -34,6 +34,7 @@ func httpResult(status int, body string) (r *Request) {
 		Code:      status,
 	}
 	r = New()
+	r.Request = nil
 	r.Response = w.Result()
 	return
 }
@@ -56,13 +57,15 @@ func TestRequestStatus(t *testing.T) {
 	r := httpResult(404, sampleHtml)
 	body, err := r.Text()
 
-	expect := "unsuccessful response code 404 Not Found"
 	if err == nil || r.StatusCode != 404 {
 		t.Fatalf("error status not reported: %v", r.Status)
 	}
-	// TODO wrap
-	if err.Error() != expect {
-		t.Fatalf("unexpected download error: %v", err)
+	var e *StatusError
+	if !errors.As(err, &e) {
+		t.Fatalf("unexpected error type: %T", err)
+	}
+	if v := e.Code; v != 404 {
+		t.Fatalf("unexpected status in error: %v", v)
 	}
 	if body != sampleHtml {
 		t.Fatalf("unexpected download: %v", body)

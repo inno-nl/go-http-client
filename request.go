@@ -1,7 +1,6 @@
 package httpclient
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -67,8 +66,7 @@ func (r *Request) Send() error {
 }
 
 func (r *Request) Resend() (err error) {
-	err = r.Error
-	if err != nil {
+	if err = r.Error; err != nil {
 		return // TODO wrap error
 	}
 
@@ -81,7 +79,7 @@ func (r *Request) Resend() (err error) {
 		if r.DoRetry != nil {
 			err = r.DoRetry(r, err)
 		} else if err == nil && r.StatusCode >= 500 {
-			err = fmt.Errorf("unsuccessful response code %s", r.Status)
+			err = &StatusError{r.Response.StatusCode, r.Response.Status}
 		}
 		if err == nil {
 			break
