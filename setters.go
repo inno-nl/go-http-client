@@ -84,13 +84,13 @@ func (r *Request) SetTimeout(s int) {
 	r.Client.Timeout = time.Duration(s) * time.Second
 }
 
-func (r *Request) SetProxyURL(ref string) {
+func (r *Request) SetProxyURL(ref string) error {
 	u, err := url.Parse(ref)
 	if err != nil {
-		r.Error = err
-		return
+		return err
 	}
 	r.Client.Transport = &http.Transport{Proxy: http.ProxyURL(u)}
+	return nil
 }
 
 func (r *Request) SetBearerAuth(token string) {
@@ -121,7 +121,7 @@ func (r *Request) Post(body any) {
 		var err error
 		data, err = json.Marshal(body)
 		if err != nil {
-			r.Error = err // TODO join
+			r.Error = fmt.Errorf("Post data invalid: %w", err) // wrap
 			return
 		}
 		if _, typeset := r.Request.Header["content-type"]; !typeset {

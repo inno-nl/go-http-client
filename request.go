@@ -38,10 +38,7 @@ func NewURL(ref string) (r *Request) {
 
 func (r *Request) NewURL(ref string) (d *Request) {
 	d = r.Clone()
-	err := d.AddURL(ref)
-	if err != nil {
-		d.Error = err
-	}
+	_ = d.AddURL(ref) // keep ignoring parse errors until Send()
 	return
 }
 
@@ -67,7 +64,7 @@ func (r *Request) Send() error {
 
 func (r *Request) Resend() (err error) {
 	if err = r.Error; err != nil {
-		return // TODO wrap error
+		return
 	}
 
 	delay := time.Second
