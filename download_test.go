@@ -5,11 +5,56 @@ import (
 
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 )
 
 const server = "httpbin.org"
 const s = "https://" + server
+
+func serverClient() (r *Request) {
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/":
+			w.WriteHeader(500)
+		case "/forward":
+			http.Redirect(w, r, "/missing", http.StatusFound)
+		case "/missing":
+			w.WriteHeader(404)
+			w.Write([]byte(sampleHtml))
+		}
+		return
+	})
+	s := httptest.NewUnstartedServer(h)
+	s.Start()
+	// t.Cleanup(func() { s.Close() })
+	r = NewURL(s.URL)
+	r.Client = s.Client()
+	return
+}
+
+func TestClientRedirect(t *testing.T) {
+	r := serverClient()
+	r = r.NewURL("forward")
+	body, err := r.Text()
+	if err == nil {
+		t.Fatalf("unexpected success: %v", body)
+	}
+	var e *StatusError
+	if !errors.As(err, &e) {
+		t.Fatalf("unexpected error type: %T", err)
+	}
+	if e.Code != 404 {
+		t.Fatalf("unexpected download status: %v", err)
+	}
+	if v := r.Response.Request.URL; v.Path != "/missing" {
+		t.Fatalf("unexpected final url: %v", v)
+	}
+	if body != sampleHtml {
+		t.Fatalf("unexpected download body: %v", body)
+	}
+}
 
 func TestInvalid(t *testing.T) {
 	u := "invalid:blopplop"
