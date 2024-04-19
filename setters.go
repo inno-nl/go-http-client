@@ -98,6 +98,11 @@ func (r *Request) SetBearerAuth(token string) {
 	r.Request.Header.Set("Authorization", "Bearer "+token)
 }
 
+// Provide a request body to be sent along with expected headers.
+// The Method will be changed to POST if not yet explicitly set.
+// Data can be given as []byte to be sent literally, a string
+// which also applies a Content-Type of text/plain unless already defined,
+// or a struct automatically marshalled as JSON and sent as application/json.
 func (r *Request) Post(body any) {
 	if r.Method == "" {
 		r.Method = "POST"
@@ -106,10 +111,10 @@ func (r *Request) Post(body any) {
 	var data []byte
 	switch body.(type) {
 	case nil:
-	case string:
-		data = []byte(body.(string)) // fallthrough
 	case []byte:
 		data = body.([]byte)
+	case string:
+		data = []byte(body.(string))
 		if _, typeset := r.Request.Header["content-type"]; !typeset {
 			r.Request.Header.Set("Content-Type", "text/plain")
 		}
