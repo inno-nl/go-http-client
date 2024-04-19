@@ -45,7 +45,7 @@ func (r *Request) AddURL(ref string) error {
 	if v := u.Path; v != "" {
 		if v[0] != '/' {
 			// append relative path to existing base
-			v = r.Request.URL.Path + "/" + v
+			v = strings.TrimRight(r.Request.URL.Path, "/") + "/" + v
 		}
 		r.Request.URL.Path = v
 	}
