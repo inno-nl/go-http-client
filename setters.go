@@ -2,7 +2,6 @@ package httpclient
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -93,13 +92,10 @@ func (r *Request) SetProxyURL(ref string) error {
 	return nil
 }
 
+// Set the request's Authorization header to the given Bearer token,
+// like [SetBasicAuth] but simply relaying a single value.
 func (r *Request) SetBearerAuth(token string) {
 	r.Request.Header.Set("Authorization", "Bearer "+token)
-}
-
-func (r *Request) SetBasicAuth(user, pass string) {
-	token := base64.StdEncoding.EncodeToString([]byte(user + ":" + pass))
-	r.Request.Header.Set("Authorization", "Basic "+token)
 }
 
 func (r *Request) Post(body any) {
