@@ -79,6 +79,18 @@ func (r *Request) AddQuery(k string, v any) {
 	}
 }
 
+// Override the number of [Tries] so an additional number of [Send] attempts
+// are made on receiving server errors.
+//
+// This feature is disabled if kept or set to 0.
+// A value of 1 will retry once after waiting for a second.
+// Higher values will keep trying, each time doubling the delay in between.
+// [Response] will be the first success or last error,
+// with [Attempt] set to the final number of tries.
+func (r *Request) SetRetry(num int) {
+	r.Tries = num + 1
+}
+
 func (r *Request) SetTimeout(s int) {
 	r.Client.Timeout = time.Duration(s) * time.Second
 }

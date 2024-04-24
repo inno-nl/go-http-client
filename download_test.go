@@ -151,7 +151,7 @@ func TestRemoteReuse(t *testing.T) {
 func TestRemoteRetry(t *testing.T) {
 	url := s + "/status/500"
 	r := NewURL(url)
-	r.Tries = 2
+	r.SetRetry(1)
 	err := r.Send()
 	if err != nil {
 		t.Fatalf("error downloading %s: %v", url, err)
@@ -166,8 +166,11 @@ func TestRemoteRetry(t *testing.T) {
 
 func TestRemoteResend(t *testing.T) {
 	r := NewURL(s + "/status/500")
-	r.Tries = 4
-	r.DoRetry = func (r *Request, e error) error {
+	r.SetRetry(3)
+	if v := r.Tries; v != 4 {
+		t.Fatalf("misinterpreted retry count: %d", v)
+	}
+	r.DoRetry = func(r *Request, e error) error {
 		if r.StatusCode == 500 {
 			// change to a client error for the next attempt
 			r.Request.URL.Path = "/status/404"

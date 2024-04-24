@@ -14,7 +14,8 @@ type Request struct {
 	*http.Request
 	*http.Response // on Send()
 
-	DoRetry func(*Request, error) (error)
+	// Override to check [Send] attempts for temporary exceptions.
+	DoRetry func(*Request, error) error
 	Attempt int // Do() counter in Send()
 	Tries   int // retry Do() if more than 1
 }
