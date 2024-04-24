@@ -207,7 +207,7 @@ func TestClientReuse(t *testing.T) {
 
 	for i, rtype := range rtypes {
 		r := c.Clone()
-		r.SetTimeout(i + 10) // distinct for each subtest
+		r.SetTimeout(float64(i) + 10) // distinct for each subtest
 		r.SetHeader("X-Accept", rtype)
 		r.AddURL("?type=" + rtype)
 		res := HttpbinEcho{}
@@ -289,8 +289,8 @@ func TestClientResend(t *testing.T) {
 }
 
 func TestClientTimeout(t *testing.T) {
-	r := client.NewURL("delay?ms=1001")
-	r.SetTimeout(1) // insufficient for slightly longer response
+	r := client.NewURL("delay?ms=150")
+	r.SetTimeout(.1) // insufficient for slightly longer response
 
 	err := r.Send()
 	if err == nil { // assume deadline exceeded
@@ -304,7 +304,7 @@ func TestClientTimeout(t *testing.T) {
 		t.Fatalf("unexpected wrapped error type: %s", v)
 	}
 
-	r.SetTimeout(5) // an additional 4s should be enough
+	r.SetTimeout(1) // should be enough
 	err = r.Send()
 	if err != nil {
 		t.Fatalf("download with increased timeout failed as well: %v", err)

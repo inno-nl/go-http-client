@@ -91,8 +91,9 @@ func (r *Request) SetRetry(num int) {
 	r.Tries = num + 1
 }
 
-func (r *Request) SetTimeout(s int) {
-	r.Client.Timeout = time.Duration(s) * time.Second
+// Shorthand to set the client timeout duration to a number of seconds.
+func (r *Request) SetTimeout(s float64) {
+	r.Client.Timeout = time.Duration(s * float64(time.Second))
 }
 
 func (r *Request) SetProxyURL(ref string) error {
