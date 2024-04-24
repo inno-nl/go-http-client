@@ -238,6 +238,7 @@ func TestClientReuse(t *testing.T) {
 func TestClientRetry(t *testing.T) {
 	r := client.NewURL("status/500")
 	r.SetRetry(1)
+	t.Parallel()
 	err := r.Send()
 	if err != nil {
 		t.Fatalf("error downloading %s: %v", r.URL, err)
@@ -264,6 +265,7 @@ func TestClientResend(t *testing.T) {
 		}
 		return e
 	}
+	t.Parallel()
 
 	err := r.Send() // 500 then 404, no 3rd retry
 	if err != nil {
@@ -291,6 +293,7 @@ func TestClientResend(t *testing.T) {
 func TestClientTimeout(t *testing.T) {
 	r := client.NewURL("delay?ms=150")
 	r.SetTimeout(.1) // insufficient for slightly longer response
+	t.Parallel()
 
 	err := r.Send()
 	if err == nil { // assume deadline exceeded
