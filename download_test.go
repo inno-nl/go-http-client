@@ -3,8 +3,10 @@ package httpclient
 import (
 	"testing"
 
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -12,9 +14,6 @@ import (
 	"strconv"
 	"time"
 )
-
-const server = "httpbin.org"
-const s = "https://" + server
 
 var client *Request
 
@@ -38,6 +37,8 @@ func serverClient() *httptest.Server {
 		case "/missing", "/status/404":
 			w.WriteHeader(404)
 			w.Write([]byte(sampleHtml))
+		case "/xml":
+			w.Write([]byte(sampleXml))
 		case "/delay":
 			amount, err := strconv.Atoi(r.URL.Query().Get("ms"))
 			if err == nil {
@@ -45,6 +46,31 @@ func serverClient() *httptest.Server {
 			} else {
 				w.WriteHeader(400)
 			}
+		case "/anything":
+			// echo back request details and parameters
+			out := HttpbinEcho{
+				Origin:  r.RemoteAddr,
+				Method:  r.Method,
+				Headers: make(map[string]string, len(r.Header)),
+				Url:     "http://" + r.Host + r.URL.String(),
+			}
+			for name, _ := range r.Header {
+				out.Headers[name] = r.Header.Get(name)
+			}
+			if v := r.URL.Query(); v != nil {
+				out.Args = make(map[string]any, len(v))
+				for name := range v {
+					out.Args[name] = v.Get(name)
+				}
+			}
+			if r.Body != nil {
+				defer r.Body.Close()
+				v, _ := io.ReadAll(r.Body)
+				out.Data = string(v)
+				json.Unmarshal(v, &out.Json)
+			}
+			json, _ := json.MarshalIndent(&out, "", "\t")
+			w.Write(json)
 		default:
 			w.WriteHeader(501)
 		}
@@ -93,6 +119,7 @@ func TestInvalid(t *testing.T) {
 
 type HttpbinEcho struct {
 	Origin  string
+	Method  string
 	Url     string
 	Data    string
 	Json    map[string]any
@@ -100,34 +127,34 @@ type HttpbinEcho struct {
 	Args    map[string]any
 }
 
-func TestRemoteJson(t *testing.T) {
+func TestClientJson(t *testing.T) {
 	const customHeader = "X-Hello"
-	url := "invalid:///anything?preset&reset=initial"
-	r := NewURL(url)
-	r.Request.URL.Scheme = "https"
-	r.Request.URL.Host = server
+	invalidBase := "invalid:///anything?preset&reset=initial"
+	r := NewURL(invalidBase)
+	r.Request.URL.Scheme = "http"
 	r.AddURL("?reset=updated")
 	r.AddURL("&reset=added")
-	r.SetHeader(customHeader, url)
-	r.Post(struct{Greeting string}{"HI!"})
-	expect := s + "/anything?reset=updated&reset=added"
+	r.SetHeader(customHeader, invalidBase)
+	r.Post(struct{ Greeting string }{"HI!"})
+	expect := "http:///anything?reset=updated&reset=added"
 	if u := r.Request.URL.String(); u != expect {
 		t.Fatalf("prepared url turned out incorrectly: %s", u)
 	}
+	r.Request.URL.Host = client.URL.Host
 
 	var res HttpbinEcho
 	err := r.Json(&res)
 	if err != nil {
-		t.Fatalf("could not download %s: %v", url, err)
+		t.Fatalf("could not download %s: %v", r.URL, err)
 	}
 	u := r.Request.URL.String()
 	if v := res.Url; v != u {
-		t.Fatalf("sent url (%s) mismatch: %v", v, u)
+		t.Fatalf("sent url (%s) mismatch: %v", u, v)
 	}
 	if v := res.Headers["User-Agent"]; v != DefaultAgent {
 		t.Fatalf("sent user agent mismatch: %v", v)
 	}
-	if v := res.Headers[customHeader]; v != url {
+	if v := res.Headers[customHeader]; v != invalidBase {
 		t.Fatalf("missing custom header %s: %v", customHeader, v)
 	}
 	if v := res.Json["Greeting"]; v != "HI!" {
@@ -135,14 +162,13 @@ func TestRemoteJson(t *testing.T) {
 	}
 }
 
-func TestRemotePost(t *testing.T) {
-	url := s + "/post"
-	r := NewURL(url)
+func TestClientPost(t *testing.T) {
+	r := client.NewURL("anything")
 	r.Post(nil)
 	var res HttpbinEcho
 	err := r.Json(&res)
 	if err != nil {
-		t.Fatalf("could not post %s: %v", url, err)
+		t.Fatalf("could not post %s: %v", r.URL, err)
 	}
 	if res.Data != "" {
 		t.Fatalf("unexpected post results: %v", res)
@@ -153,33 +179,31 @@ func TestRemotePost(t *testing.T) {
 	r.Post(input)
 	err = r.Json(&res)
 	if err != nil {
-		t.Fatalf("could not post %s with json: %v", url, err)
+		t.Fatalf("could not post %s with json: %v", r.URL, err)
 	}
-	if res.Data != input {
-		t.Fatalf("mismatching post results: %v", res)
+	if v := res.Data; v != input {
+		t.Fatalf("mismatching post results: %v", v)
 	}
 }
 
-func TestRemoteJsonError(t *testing.T) {
-	u := s + "/xml"
-	r := NewURL(u)
+func TestClientJsonError(t *testing.T) {
+	r := client.NewURL("xml")
 	var res HttpbinEcho
 	err := r.Json(&res)
 	if err == nil {
-		t.Fatalf("unexpectedly parsed %s as json: %v", u, res)
+		t.Fatalf("unexpectedly parsed %s as json: %v", r.URL, res)
 	}
 	if err != ErrJsonLikeXml {
-		t.Fatalf("unexpected error parsing %s: %v", u, err)
+		t.Fatalf("unexpected error parsing %s: %v", r.URL, err)
 	}
 	if v := r.Preview(); v != xmlDeclare+"..." {
-		t.Fatalf("unexpected preview of %s: %v", u, v)
+		t.Fatalf("unexpected preview of %s: %v", r.URL, v)
 	}
 }
 
-func TestRemoteReuse(t *testing.T) {
+func TestClientReuse(t *testing.T) {
 	rtypes := []string{"image/jpeg", "text/plain"}
-	url := s + "/anything"
-	c := NewURL(url)
+	c := client.NewURL("anything")
 
 	for i, rtype := range rtypes {
 		r := c.Clone()
