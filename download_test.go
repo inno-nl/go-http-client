@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
+	"time"
 )
 
 const server = "httpbin.org"
@@ -16,13 +18,22 @@ const s = "https://" + server
 func serverClient() (r *Request) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case "/":
+		case "/", "/status/500":
 			w.WriteHeader(500)
 		case "/forward":
 			http.Redirect(w, r, "/missing", http.StatusFound)
-		case "/missing":
+		case "/missing", "/status/404":
 			w.WriteHeader(404)
 			w.Write([]byte(sampleHtml))
+		case "/delay":
+			amount, err := strconv.Atoi(r.URL.Query().Get("ms"))
+			if err == nil {
+				time.Sleep(time.Duration(amount) * time.Millisecond)
+			} else {
+				w.WriteHeader(400)
+			}
+		default:
+			w.WriteHeader(501)
 		}
 		return
 	})
@@ -193,24 +204,23 @@ func TestRemoteReuse(t *testing.T) {
 	}
 }
 
-func TestRemoteRetry(t *testing.T) {
-	url := s + "/status/500"
-	r := NewURL(url)
+func TestClientRetry(t *testing.T) {
+	r := serverClient().NewURL("status/500")
 	r.SetRetry(1)
 	err := r.Send()
 	if err != nil {
-		t.Fatalf("error downloading %s: %v", url, err)
+		t.Fatalf("error downloading %s: %v", r.URL, err)
 	}
 	if r.StatusCode != 500 {
-		t.Fatalf("downloaded %s with incorrect status: %s", url, r.Status)
+		t.Fatalf("downloaded %s with incorrect status: %s", r.URL, r.Status)
 	}
 	if r.Attempt != r.Tries {
-		t.Fatalf("tried %d downloads of %s", r.Attempt, url)
+		t.Fatalf("tried %d downloads of %s", r.Attempt, r.URL)
 	}
 }
 
-func TestRemoteResend(t *testing.T) {
-	r := NewURL(s + "/status/500")
+func TestClientResend(t *testing.T) {
+	r := serverClient().NewURL("status/500")
 	r.SetRetry(3)
 	if v := r.Tries; v != 4 {
 		t.Fatalf("misinterpreted retry count: %d", v)
@@ -218,7 +228,7 @@ func TestRemoteResend(t *testing.T) {
 	r.DoRetry = func(r *Request, e error) error {
 		if r.StatusCode == 500 {
 			// change to a client error for the next attempt
-			r.Request.URL.Path = "/status/404"
+			r.AddURL("/status/404")
 			return fmt.Errorf("retry after initial code %s", r.Status)
 		}
 		return e
@@ -247,13 +257,13 @@ func TestRemoteResend(t *testing.T) {
 	}
 }
 
-func TestRemoteTimeout(t *testing.T) {
-	u := s + "/delay/1"
-	r := NewURL(u)
-	r.SetTimeout(1) // insufficient for transfer overhead
+func TestClientTimeout(t *testing.T) {
+	r := serverClient().NewURL("delay?ms=1001")
+	r.SetTimeout(1) // insufficient for slightly longer response
+
 	err := r.Send()
 	if err == nil { // assume deadline exceeded
-		t.Fatalf("downloaded %s despite timeout", u)
+		t.Fatalf("downloaded %s despite timeout", r.URL)
 	}
 	var urlerr *url.Error
 	if !errors.As(err, &urlerr) {
