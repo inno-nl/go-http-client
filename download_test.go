@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strconv"
 	"time"
 )
@@ -15,7 +16,19 @@ import (
 const server = "httpbin.org"
 const s = "https://" + server
 
-func serverClient() (r *Request) {
+var client *Request
+
+func TestMain(t *testing.M) {
+	// shared server setup and teardown
+	s := serverClient()
+	defer s.Close()
+	client = NewURL(s.URL)
+	client.Client = s.Client()
+
+	os.Exit(t.Run())
+}
+
+func serverClient() *httptest.Server {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/", "/status/500":
@@ -37,17 +50,11 @@ func serverClient() (r *Request) {
 		}
 		return
 	})
-	s := httptest.NewUnstartedServer(h)
-	s.Start()
-	// t.Cleanup(func() { s.Close() })
-	r = NewURL(s.URL)
-	r.Client = s.Client()
-	return
+	return httptest.NewServer(h)
 }
 
 func TestClientRedirect(t *testing.T) {
-	r := serverClient()
-	r = r.NewURL("forward")
+	r := client.NewURL("forward")
 	body, err := r.Text()
 	if err == nil {
 		t.Fatalf("unexpected success: %v", body)
@@ -205,7 +212,7 @@ func TestRemoteReuse(t *testing.T) {
 }
 
 func TestClientRetry(t *testing.T) {
-	r := serverClient().NewURL("status/500")
+	r := client.NewURL("status/500")
 	r.SetRetry(1)
 	err := r.Send()
 	if err != nil {
@@ -220,7 +227,7 @@ func TestClientRetry(t *testing.T) {
 }
 
 func TestClientResend(t *testing.T) {
-	r := serverClient().NewURL("status/500")
+	r := client.NewURL("status/500")
 	r.SetRetry(3)
 	if v := r.Tries; v != 4 {
 		t.Fatalf("misinterpreted retry count: %d", v)
@@ -258,7 +265,7 @@ func TestClientResend(t *testing.T) {
 }
 
 func TestClientTimeout(t *testing.T) {
-	r := serverClient().NewURL("delay?ms=1001")
+	r := client.NewURL("delay?ms=1001")
 	r.SetTimeout(1) // insufficient for slightly longer response
 
 	err := r.Send()
