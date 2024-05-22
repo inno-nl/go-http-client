@@ -8,6 +8,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 )
 
@@ -33,6 +34,7 @@ func httpResult(status int, body string) (r *Request) {
 		Body:      bytes.NewBufferString(body),
 		Code:      status,
 	}
+	w.HeaderMap.Add("Content-Length", strconv.Itoa(len(body)))
 	r = New()
 	r.Request = nil
 	r.Response = w.Result()
@@ -203,5 +205,14 @@ func TestRequestXml(t *testing.T) {
 	expect := `Sample Slide Show`
 	if res.Title != expect {
 		t.Fatalf("unexpected xml results for <slideshow title />: %v", res.Title)
+	}
+}
+
+func TestRequestXmlEmpty(t *testing.T) {
+	r := httpResult(200, "")
+	var res struct {}
+	err := r.Xml(&res)
+	if err != ErrBodyEmpty {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }

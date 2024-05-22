@@ -86,9 +86,18 @@ func (r *Request) Text() (string, error) {
 //	}
 var ErrJsonLikeXml = fmt.Errorf("initial '<' indicates xml not json")
 
+// Error message if an empty response was received
+// instead of expected [Json] or [Xml] data.
+// Replaces more ambiguous unmarshalling exceptions
+// "unexpected end of JSON input" or "EOF".
+var ErrBodyEmpty = fmt.Errorf("empty body")
+
 func (r *Request) Json(serial any) error {
 	body, err := r.Text()
-	if len(body) > 0 && body[0] == '<' {
+	if len(body) == 0 {
+		return ErrBodyEmpty
+	}
+	if body[0] == '<' {
 		buf := bytes.NewBufferString(body)
 		r.Response.Body = io.NopCloser(buf) // copy for rereading
 		return ErrJsonLikeXml
@@ -107,6 +116,9 @@ func (r *Request) Json(serial any) error {
 func (r *Request) Xml(serial any) error {
 	if err := r.Receive(); err != nil {
 		return err
+	}
+	if r.Response.ContentLength == 0 {
+		return ErrBodyEmpty
 	}
 	d := xml.NewDecoder(r.Response.Body)
 	d.CharsetReader = func(xmlenc string, in io.Reader) (out io.Reader, err error) {
