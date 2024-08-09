@@ -1,6 +1,7 @@
 package httpclient
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -76,15 +77,25 @@ func (r *Request) Send() (response *Response, err error) {
 	var res *http.Response
 	for i := 0; i < retryCount+1; i++ {
 		res, err = hc.Do(req)
-		if err == nil {
-			break
+
+		hasExponentialBackup := r.exponentialBackoff > 0
+		tooManyRequests := res.StatusCode == 429
+
+		if err != nil || (hasExponentialBackup && tooManyRequests) {
+			if tooManyRequests {
+				err = errors.New("too many requests")
+			}
+
+			r.logError(req, i+1, err)
+
+			if hasExponentialBackup {
+				time.Sleep(time.Duration(r.exponentialBackoff*(i+1)) * time.Second)
+			}
+
+			continue
 		}
 
-		r.logError(req, i+1, err)
-
-		if r.exponentialBackoff > 0 {
-			time.Sleep(time.Duration(r.exponentialBackoff*(i+1)) * time.Second)
-		}
+		break
 	}
 
 	// If no response was given the request has failed
