@@ -44,19 +44,25 @@ func (b *base) ProxyUrl(proxyUrl string) {
 	b.proxyUrl = &proxyUrl
 }
 
-func (b *base) BaseUrl(requestUrl string) {
+func (b *base) BaseUrl(format string, a ...any) {
+	requestUrl := fmt.Sprintf(format, a...)
+
 	baseUrl := strings.TrimRight(requestUrl, "/")
 
 	b.baseUrl = &baseUrl
 }
 
-func (b *base) Path(requestUrl string) {
+func (b *base) Path(format string, a ...any) {
+	requestUrl := fmt.Sprintf(format, a...)
+
 	path := strings.TrimLeft(requestUrl, "/")
 
 	b.path = &path
 }
 
-func (b *base) FullUrl(requestUrl string) {
+func (b *base) FullUrl(format string, a ...any) {
+	requestUrl := fmt.Sprintf(format, a...)
+
 	parsedUrl, _ := url.Parse(b.extractParametersFromUrl(requestUrl))
 
 	baseUrl := fmt.Sprintf(
