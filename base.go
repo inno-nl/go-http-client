@@ -80,7 +80,7 @@ func (b *base) Method(method string) {
 	b.method = &method
 }
 
-func (b *base) Parameter(key string, value string) {
+func (b *base) Parameter(key string, value any) error {
 	b.initParameters()
 
 	_, exists := b.parameters[key]
@@ -88,30 +88,36 @@ func (b *base) Parameter(key string, value string) {
 		b.parameters[key] = make([]string, 0)
 	}
 
+	stringifiedValue, err := anyToString(value)
+	if err != nil {
+		return err
+	}
+
 	b.parameters[key] = append(
 		b.parameters[key],
-		value,
+		stringifiedValue,
 	)
+
+	return nil
 }
 
 func (b *base) Parameters(parameters map[string]any) {
 	b.initParameters()
 
 	for k, v := range parameters {
-		vType := fmt.Sprint(reflect.TypeOf(v).Kind())
+		varType := reflect.TypeOf(v).Kind().String()
 
-		if vType == "string" {
-			b.Parameter(k, v.(string))
-			continue
-		}
-
-		if vType == "slice" {
-			slice := v.([]string)
+		if varType == "slice" {
+			slice := v.([]any)
 
 			for _, sv := range slice {
 				b.Parameter(k, sv)
 			}
+
+			continue
 		}
+
+		b.Parameter(k, v)
 	}
 }
 
