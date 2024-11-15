@@ -3,30 +3,30 @@ package httpclient
 import (
 	"fmt"
 	"reflect"
-	"strings"
 )
 
-func anyToString(a any) (string, error) {
-	varType := reflect.TypeOf(a).String()
+func AnyToString(a any) string {
+	return fmt.Sprint(a)
+}
 
-	if strings.Contains(varType, "int") {
-		return fmt.Sprintf("%d", a), nil
+func BoolToString(b bool) string {
+	if b {
+		return "true"
 	}
 
-	if strings.Contains(varType, "float") {
-		return fmt.Sprintf("%f", a), nil
+	return "false"
+}
+
+func BoolToNumber(b bool) int {
+	if b {
+		return 1
 	}
 
-	if strings.Contains(varType, "bool") {
-		if a.(bool) {
-			return "true", nil
-		}
-		return "false", nil
-	}
+	return 0
+}
 
-	if strings.Contains(varType, "string") || strings.Contains(varType, "[]byte") {
-		return fmt.Sprintf("%d", a), nil
-	}
+func isSlice(a any) bool {
+	varType := reflect.TypeOf(a).Kind().String()
 
-	return "", fmt.Errorf("variable type: '%s' not compatible", varType)
+	return varType == "slice"
 }

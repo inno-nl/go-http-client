@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/url"
-	"reflect"
 	"strings"
 )
 
@@ -80,7 +79,7 @@ func (b *base) Method(method string) {
 	b.method = &method
 }
 
-func (b *base) Parameter(key string, value any) error {
+func (b *base) Parameter(key string, value any) {
 	b.initParameters()
 
 	_, exists := b.parameters[key]
@@ -88,26 +87,17 @@ func (b *base) Parameter(key string, value any) error {
 		b.parameters[key] = make([]string, 0)
 	}
 
-	stringifiedValue, err := anyToString(value)
-	if err != nil {
-		return err
-	}
-
 	b.parameters[key] = append(
 		b.parameters[key],
-		stringifiedValue,
+		AnyToString(value),
 	)
-
-	return nil
 }
 
 func (b *base) Parameters(parameters map[string]any) {
 	b.initParameters()
 
 	for k, v := range parameters {
-		varType := reflect.TypeOf(v).Kind().String()
-
-		if varType == "slice" {
+		if isSlice(v) {
 			slice := v.([]any)
 
 			for _, sv := range slice {
