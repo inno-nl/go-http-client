@@ -80,12 +80,16 @@ func (r *Request) Send() (response *Response, err error) {
 		res, err = hc.Do(req)
 
 		// Check error
-		if err != nil && hasExponentialBackup {
-			r.logError(req, i+1, err)
+		if err != nil {
+			if hasExponentialBackup {
+				r.logError(req, i+1, err)
 
-			time.Sleep(time.Duration(r.exponentialBackoff*(i+1)) * time.Second)
+				time.Sleep(time.Duration(r.exponentialBackoff*(i+1)) * time.Second)
 
-			continue
+				continue
+			}
+
+			return
 		}
 
 		// Check too many requests
