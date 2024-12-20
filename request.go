@@ -74,17 +74,23 @@ func (r *Request) Send() (response *Response, err error) {
 
 	// Tries the request atleast once
 	retryCount := *r.retryCount
+	hasExponentialBackup := r.exponentialBackoff > 0
 	var res *http.Response
 	for i := 0; i < retryCount+1; i++ {
 		res, err = hc.Do(req)
 
-		hasExponentialBackup := r.exponentialBackoff > 0
-		tooManyRequests := res.StatusCode == 429
+		// Check error
+		if err != nil && hasExponentialBackup {
+			r.logError(req, i+1, err)
 
-		if err != nil || (hasExponentialBackup && tooManyRequests) {
-			if tooManyRequests {
-				err = errors.New("too many requests")
-			}
+			time.Sleep(time.Duration(r.exponentialBackoff*(i+1)) * time.Second)
+
+			continue
+		}
+
+		// Check too many requests
+		if res.StatusCode == 429 && hasExponentialBackup {
+			err = errors.New("too many requests")
 
 			r.logError(req, i+1, err)
 
