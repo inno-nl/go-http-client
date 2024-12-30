@@ -236,10 +236,6 @@ func (b *base) generateUrl() string {
 }
 
 func (b *base) parseBody() io.Reader {
-	if b.method != nil && *b.method == GET {
-		return nil
-	}
-
 	if b.body != nil {
 		return strings.NewReader(*b.body)
 	}
