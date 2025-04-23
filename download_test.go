@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -299,12 +300,12 @@ func TestClientTimeout(t *testing.T) {
 	if err == nil { // assume deadline exceeded
 		t.Fatalf("downloaded %s despite timeout", r.URL)
 	}
-	var urlerr *url.Error
+	var urlerr net.Error
 	if !errors.As(err, &urlerr) {
 		t.Fatalf("unexpected error type: %T", err)
 	}
-	if v := fmt.Sprintf("%T", urlerr.Err); v != "*http.httpError" { // reflect.TypeOf
-		t.Fatalf("unexpected wrapped error type: %s", v)
+	if !urlerr.Timeout() {
+		t.Fatalf("unexpected timeout status: %v", urlerr)
 	}
 
 	r.SetTimeout(1) // should be enough
