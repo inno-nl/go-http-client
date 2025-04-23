@@ -42,3 +42,16 @@ r.AddQuery("greeting", "hello?") // .AddURL("&greeting=hello%3f")
 r.SetHeader("Accept", "image/webp")
 img, err := r.Bytes()
 ```
+
+## Data compatibility
+
+```go
+var res struct {
+    Msg  string
+    List httpclient.AssArray // could be ["this"] or {"0":"this"}
+}
+if err := httpclient.NewURL("/json.php").Json(&res); err != nil {
+    panic(err)
+}
+first := res.List[0] // "this"
+```
