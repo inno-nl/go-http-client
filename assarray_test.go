@@ -17,7 +17,8 @@ func TestAssArray(t *testing.T) {
 		`["0":1]`:                    nil,
 
 		`{"0":2, "1":3, "2":4}`:      {2., 3., 4.},
-		`{"0":"un", "1":2, "2":[3]}`: {"un", 2., []any{3.}}, // mixed values
+		`{"42":3, "2":2}`:            {2., 3.},              // wrong order
+		`{"1":"un", "2":2, "4":[3]}`: {"un", 2., []any{3.}}, // mixed values
 		`{"0":1, "mixed":2}`:         nil,                   // mixed keys
 	}
 
